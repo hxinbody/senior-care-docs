@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InBody Senior Care - AI 전화 헬스케어 서비스 기획 문서</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+        .hero { padding:60px 32px 40px; text-align:center; max-width:800px; margin:0 auto; }
+        .hero h1 { font-size:2.2rem; font-weight:700; background:linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px; }
+        .hero p { font-size:1rem; color:#94a3b8; line-height:1.7; }
+        .hero .date { margin-top:12px; font-size:0.82rem; color:#475569; }
+
+        .grid { max-width:800px; margin:0 auto; padding:0 24px 60px; display:flex; flex-direction:column; gap:16px; }
+
+        a.card {
+            display:flex; align-items:center; gap:20px;
+            background:#1e293b; border:1px solid #334155;
+            border-radius:14px; padding:24px;
+            text-decoration:none; color:#e2e8f0;
+            transition:all 0.2s;
+        }
+        a.card:hover { background:#334155; border-color:#475569; transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+
+        .card-num {
+            width:48px; height:48px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.1rem; font-weight:700; color:#fff; flex-shrink:0;
+        }
+        .card-body { flex:1; }
+        .card-title { font-size:1.05rem; font-weight:700; margin-bottom:4px; }
+        .card-desc { font-size:0.82rem; color:#94a3b8; line-height:1.5; }
+        .card-tags { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+        .tag { font-size:0.68rem; font-weight:600; padding:2px 8px; border-radius:6px; }
+        .tag.plan { background:#1e3a5f; color:#60a5fa; }
+        .tag.scenario { background:#1a3a2a; color:#4ade80; }
+        .tag.schema { background:#2d1b4e; color:#c084fc; }
+        .tag.ui { background:#3b1c1c; color:#fb923c; }
+        .tag.interview { background:#1c2d3b; color:#67e8f9; }
+
+        .card-arrow { color:#475569; font-size:1.2rem; flex-shrink:0; }
+
+        .footer { text-align:center; padding:32px; color:#334155; font-size:0.78rem; border-top:1px solid #1e293b; }
+
+        @media(max-width:600px) {
+            .hero { padding:40px 20px 28px; }
+            .hero h1 { font-size:1.6rem; }
+            .grid { padding:0 16px 40px; }
+            a.card { flex-direction:column; align-items:flex-start; gap:12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>InBody Senior Care</h1>
+    <p>AI 전화통화 기반 시니어 헬스케어 서비스<br>기획 문서 모음</p>
+    <div class="date">FitPlus DataScience Team | 2026.04</div>
+</div>
+
+<div class="grid">
+    <a class="card" href="01_service_plan.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);">1</div>
+        <div class="card-body">
+            <div class="card-title">AI 전화통화 기반 시니어 헬스케어 서비스 기획안</div>
+            <div class="card-desc">AI 전화로 할 수 있는 것(6개), InBody 데이터로 할 수 있는 것(6개), 확장 가능한 것(8개). 서비스 아키텍처, 우선순위, 니즈 매핑, 참고문헌 30건 포함.</div>
+            <div class="card-tags">
+                <span class="tag plan">서비스 기획</span>
+                <span class="tag plan">우선순위</span>
+                <span class="tag plan">레퍼런스 30건</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+
+    <a class="card" href="02_call_scenarios.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#15803d,#22c55e);">2</div>
+        <div class="card-body">
+            <div class="card-title">AI 전화 대화 시나리오 / 스크립트 설계</div>
+            <div class="card-desc">6개 핵심 시나리오(S1~S6) + 7개 확장 모듈(M1~M7)의 일본어/한국어 대화문, 분기 로직, 에스컬레이션 기준, 임상 근거. 포괄적 노인 건강 평가 체계.</div>
+            <div class="card-tags">
+                <span class="tag scenario">시나리오 S1~S6</span>
+                <span class="tag scenario">확장 모듈 M1~M7</span>
+                <span class="tag scenario">레퍼런스 40건</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+
+    <a class="card" href="03_dashboard_schema.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">3</div>
+        <div class="card-body">
+            <div class="card-title">의료기관용 대시보드 데이터 스키마 설계</div>
+            <div class="card-desc">신규 테이블 8개 + 확장 모듈 테이블 + 대시보드 뷰 3개 + API 엔드포인트 9개. ER 다이어그램, Role별 접근 제어, APPI 준수 사항.</div>
+            <div class="card-tags">
+                <span class="tag schema">DB 스키마</span>
+                <span class="tag schema">API 설계</span>
+                <span class="tag schema">접근 제어</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+
+    <a class="card" href="04_dashboard_mockup_jp.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#ea580c,#fb923c);">4</div>
+        <div class="card-body">
+            <div class="card-title">의료기관 대시보드 UI 목업 (일본어판)</div>
+            <div class="card-desc">환자 목록, 환자 상세(체성분 차트/프레일티/인지/통화 이력), 알림 피드 3개 화면. 일본어 UI + 화면-스키마 매핑 테이블.</div>
+            <div class="card-tags">
+                <span class="tag ui">UI 목업</span>
+                <span class="tag ui">일본어</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+
+    <a class="card" href="05_dashboard_mockup_kr.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#ea580c,#fb923c);">5</div>
+        <div class="card-body">
+            <div class="card-title">의료기관 대시보드 UI 목업 (한글판)</div>
+            <div class="card-desc">동일한 3개 화면의 한국어 버전. 한국 환자명, 한국어 라벨. 내부 공유/프레젠테이션용.</div>
+            <div class="card-tags">
+                <span class="tag ui">UI 목업</span>
+                <span class="tag ui">한국어</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+
+    <a class="card" href="06_jp_interviews.html">
+        <div class="card-num" style="background:linear-gradient(135deg,#0891b2,#22d3ee);">6</div>
+        <div class="card-body">
+            <div class="card-title">일본 현지 인터뷰 정리 (3건)</div>
+            <div class="card-desc">Arfit(유통/UX), 우에노코지 임상공학기사(투석/근감소증), 오오모리 병원 의사(지표 확산/음성 AI). 종합 시사점 10개 카드.</div>
+            <div class="card-tags">
+                <span class="tag interview">현지 인터뷰</span>
+                <span class="tag interview">3건 종합</span>
+                <span class="tag interview">시사점 10개</span>
+            </div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+    </a>
+</div>
+
+<div class="footer">
+    InBody FitPlus DataScience | Confidential - Internal Use Only
+</div>
+
+</body>
+</html>

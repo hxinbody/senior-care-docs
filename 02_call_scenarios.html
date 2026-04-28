@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 전화 대화 시나리오/스크립트 설계</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202124;
+            --text-sec: #5f6368;
+            --border: #dadce0;
+            --ai: #1a73e8;
+            --ai-bg: #e8f0fe;
+            --user: #2e7d32;
+            --user-bg: #e8f5e9;
+            --system: #6a1b9a;
+            --system-bg: #f3e5f5;
+            --warn: #e65100;
+            --warn-bg: #fff3e0;
+            --danger: #c62828;
+            --danger-bg: #fce4ec;
+            --data: #00838f;
+            --data-bg: #e0f7fa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #66bb6a 100%);
+            color: white;
+            padding: 52px 40px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 2rem; font-weight: 700; margin-bottom: 10px; }
+        .hero .subtitle { font-size: 1.05rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+        .hero .date { margin-top: 14px; font-size: 0.85rem; opacity: 0.7; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+        /* TOC */
+        .toc {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 40px;
+        }
+        .toc h2 { font-size: 1.2rem; margin-bottom: 16px; color: var(--text); }
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .toc-item:hover { background: #f1f3f4; }
+        .toc-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* Scenario */
+        .scenario {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 36px;
+            overflow: hidden;
+        }
+        .scenario-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .scenario-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+        .scenario-meta h2 { font-size: 1.3rem; font-weight: 700; }
+        .scenario-meta .en { font-size: 0.85rem; color: var(--text-sec); }
+        .scenario-body { padding: 28px; }
+
+        /* Meta info */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .meta-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 14px 18px;
+        }
+        .meta-box .label { font-size: 0.75rem; font-weight: 600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .meta-box .value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+        /* Conversation */
+        .conv-section { margin-top: 20px; }
+        .conv-section h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+        }
+        .conv-flow { display: flex; flex-direction: column; gap: 0; }
+
+        .msg {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+        }
+        .msg-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .msg-icon.ai { background: var(--ai); }
+        .msg-icon.user { background: var(--user); }
+        .msg-icon.system { background: var(--system); }
+        .msg-icon.warn { background: var(--warn); }
+        .msg-icon.danger { background: var(--danger); }
+        .msg-icon.data { background: var(--data); }
+
+        .msg-content { flex: 1; }
+        .msg-role {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .msg-role.ai { color: var(--ai); }
+        .msg-role.user { color: var(--user); }
+        .msg-role.system { color: var(--system); }
+        .msg-role.warn { color: var(--warn); }
+        .msg-role.danger { color: var(--danger); }
+        .msg-role.data { color: var(--data); }
+
+        .msg-bubble {
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+        .msg-bubble.ai { background: var(--ai-bg); border: 1px solid #c5d9f7; }
+        .msg-bubble.user { background: var(--user-bg); border: 1px solid #c8e6c9; }
+        .msg-bubble.system { background: var(--system-bg); border: 1px solid #e1bee7; }
+        .msg-bubble.warn { background: var(--warn-bg); border: 1px solid #ffe0b2; }
+        .msg-bubble.danger { background: var(--danger-bg); border: 1px solid #f8bbd0; }
+        .msg-bubble.data { background: var(--data-bg); border: 1px solid #b2ebf2; }
+
+        .msg-bubble .jp {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .msg-bubble .kr {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text-sec);
+            font-style: italic;
+        }
+
+        /* Branch */
+        .branch {
+            background: #fffde7;
+            border: 2px dashed #f9a825;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 12px 0 12px 48px;
+        }
+        .branch-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #f57f17;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .branch-option {
+            padding: 8px 0;
+            border-bottom: 1px solid #fff9c4;
+        }
+        .branch-option:last-child { border-bottom: none; }
+        .branch-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .branch-label.positive { background: #e8f5e9; color: #2e7d32; }
+        .branch-label.neutral { background: #e3f2fd; color: #1565c0; }
+        .branch-label.negative { background: #fce4ec; color: #c62828; }
+        .branch-label.alert { background: #fff3e0; color: #e65100; }
+        .branch-desc { font-size: 0.88rem; margin-left: 4px; }
+
+        /* Phase divider */
+        .phase-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+        .phase-divider::before, .phase-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .phase-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-sec);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        /* Data collect summary */
+        .data-collect {
+            background: var(--data-bg);
+            border: 1px solid #b2ebf2;
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-top: 20px;
+        }
+        .data-collect h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--data);
+            margin-bottom: 10px;
+        }
+        .data-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .data-tag {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: white;
+            color: var(--data);
+            border: 1px solid #80deea;
+        }
+
+        /* Escalation box */
+        .escalation-box {
+            background: var(--danger-bg);
+            border: 1px solid #ef9a9a;
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin-top: 16px;
+        }
+        .escalation-box h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 8px;
+        }
+        .escalation-box ul { list-style: none; padding: 0; }
+        .escalation-box li {
+            font-size: 0.88rem;
+            padding: 3px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+        .escalation-box li::before {
+            content: '!';
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+        /* Notes */
+        .design-note {
+            background: #f3e5f5;
+            border-left: 4px solid #6a1b9a;
+            border-radius: 0 10px 10px 0;
+            padding: 14px 18px;
+            margin-top: 16px;
+            font-size: 0.88rem;
+        }
+        .design-note strong { color: #6a1b9a; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-sec);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Color classes */
+        .c1 { background: #1a73e8; }
+        .c2 { background: #2e7d32; }
+        .c3 { background: #e65100; }
+        .c4 { background: #6a1b9a; }
+        .c5 { background: #c62828; }
+        .c6 { background: #00838f; }
+
+        /* References */
+        .ref {
+            font-size: 0.72rem;
+            color: #1565c0;
+            background: #e3f2fd;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: help;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .ref:hover { background: #bbdefb; }
+        .ref-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 32px;
+        }
+        .ref-section h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .ref-category {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2e7d32;
+            margin: 18px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+        .ref-category:first-of-type { margin-top: 0; }
+        .ref-item {
+            font-size: 0.84rem;
+            line-height: 1.7;
+            padding: 4px 0 4px 12px;
+            border-left: 3px solid #e8f5e9;
+            margin-bottom: 6px;
+        }
+        .ref-item .ref-id {
+            font-weight: 700;
+            color: #2e7d32;
+            margin-right: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .hero { padding: 36px 20px; }
+            .hero h1 { font-size: 1.5rem; }
+            .container { padding: 24px 16px; }
+            .meta-grid { grid-template-columns: 1fr; }
+            .toc-grid { grid-template-columns: 1fr; }
+            .branch { margin-left: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>AI 전화 대화 시나리오 / 스크립트 설계</h1>
+    <div class="subtitle">일본 50~70대 시니어 대상 AI 전화통화 서비스 - 6개 핵심 시나리오별 대화 플로우</div>
+    <div class="date">2026.04.27 | FitPlus DataScience Team</div>
+</div>
+
+<div class="container">
+
+    <!-- TOC -->
+    <div class="toc">
+        <h2>시나리오 목차</h2>
+        <div class="toc-grid">
+            <a class="toc-item" href="#s1"><span class="toc-num c1">S1</span> 정기 건강 체크인</a>
+            <a class="toc-item" href="#s2"><span class="toc-num c2">S2</span> InBody 측정 결과 음성 해설</a>
+            <a class="toc-item" href="#s3"><span class="toc-num c3">S3</span> 동기부여 및 행동 코칭</a>
+            <a class="toc-item" href="#s4"><span class="toc-num c4">S4</span> 인지기능 간이 스크리닝</a>
+            <a class="toc-item" href="#s5"><span class="toc-num c5">S5</span> 프레일티(허약) 조기 감지</a>
+            <a class="toc-item" href="#s6"><span class="toc-num c6">S6</span> 긴급 상황 대응</a>
+            <a class="toc-item" href="#s1ext"><span class="toc-num" style="background:#1565c0;">S1+</span> 확장 모듈 (우울/구강/영양/외로움/ADL/다약제/수면)</a>
+        </div>
+    </div>
+
+    <!-- ==================== WHY THESE SCENARIOS ==================== -->
+    <div class="scenario" id="rationale">
+        <div class="scenario-header" style="background: linear-gradient(135deg, #263238, #37474f); border-bottom: none;">
+            <div class="scenario-num" style="background: white; color: #263238;">?</div>
+            <div class="scenario-meta">
+                <h2 style="color: white;">왜 이 6개 시나리오인가</h2>
+                <div class="en" style="color: rgba(255,255,255,0.7);">Clinical & Technical Rationale for Each Scenario</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+
+            <!-- Intro -->
+            <div style="background: #f1f3f4; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; font-size: 0.94rem; line-height: 1.8;">
+                일본 시니어(50~70대)의 건강 악화는 대부분 <strong>"서서히 진행되어 본인이 인지했을 때는 이미 상당히 진행된 상태"</strong>입니다.
+                이 서비스의 핵심 가치는 <strong>InBody 체성분 객관 데이터 + AI 전화 주관 데이터를 결합</strong>하여,
+                악화가 시작되는 시점을 최대한 일찍 포착하고, 행동 변화를 유도하는 것입니다.<br><br>
+                아래 6개 시나리오는 각각 독립적으로도 의미가 있지만, <strong>서로 데이터를 주고받으며 하나의 모니터링 시스템</strong>을 구성합니다.
+            </div>
+
+            <!-- S1 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #1a73e8; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S1</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">정기 건강 체크인 &mdash; 모든 것의 기반</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> 일본 厚生労働省의 <em>国民生活基礎調査</em> <a class="ref" href="#ref-list2" title="国民生活基礎調査 2022">R1</a>에 따르면, 65세 이상의 약 50%가 하나 이상의 자각 증상을 갖고 있지만
+                        의료기관을 방문하지 않습니다. "괜찮겠지"라는 생각으로 넘기다가 악화되는 패턴이 가장 흔합니다.
+                        주 1~2회 정기 전화는 이 공백을 메우는 <strong>1차 안전망</strong> 역할을 합니다.
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> 매 통화에서 수집되는 주관적 데이터(컨디션 점수, 통증, 수면, 식욕 등)는
+                        S2~S6 모든 시나리오의 <strong>컨텍스트 변수</strong>로 활용됩니다. 예를 들어, S1에서 "무릎이 아프다"고 보고하면
+                        S3 코칭이 자동으로 저강도 운동으로 전환되고, S5 프레일티 판정의 보행 관련 질문에 가중치가 부여됩니다.
+                        이 시나리오가 없으면 나머지 시나리오의 맥락이 사라집니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- S2 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #2e7d32; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S2</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">InBody 결과 음성 해설 &mdash; 숫자를 행동으로 바꾸는 번역기</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> InBody가 측정하는 17개 지표(체중, 골격근량, 체지방률, 내장지방, 체수분 등)는
+                        의학적으로 매우 가치 있는 데이터이지만, 시니어 대부분은 <strong>결과지의 숫자를 해석하지 못합니다</strong>.
+                        연구에 따르면 건강 데이터를 이해하고 행동으로 연결하는 <em>Health Literacy</em>가 낮을수록
+                        만성질환 관리 실패율이 1.5~3배 높습니다. <a class="ref" href="#ref-list2" title="Berkman et al., 2011, Ann Intern Med">R5</a>
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> 기존 FitPlus의 <strong>TrendReport CoreSentence 엔진</strong>(LLM 기반)이 이미 측정 데이터를
+                        자연어 코멘트로 변환하고 있습니다. 이 시나리오는 텍스트 출력을 음성 출력으로 전환하는 것이므로
+                        <strong>신규 개발 부담이 가장 적습니다</strong>. Cluster Index를 활용한 동년배 비교("상위 35%")는
+                        추상적 수치를 직관적 위치 감각으로 바꿔줍니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- S3 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #e65100; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S3</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">동기부여 및 행동 코칭 &mdash; 알아도 못 하는 문제의 해결</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> 内閣府 <em>高齢者の健康に関する調査(2022)</em> <a class="ref" href="#ref-list2" title="内閣府, 2022">R8</a>에서 60대 이상의 72%가
+                        "운동이 중요하다는 것을 알고 있다"고 응답했지만, 실제로 주 2회 이상 운동하는 비율은 38%에 불과했습니다.
+                        <strong>"안다"와 "한다" 사이의 갭</strong>을 메우는 것이 이 시나리오의 목적입니다.
+                        행동과학에서는 이를 <em>Intention-Action Gap</em>이라 부르며,
+                        정기적인 리마인더와 축하 피드백이 습관 형성에 가장 효과적이라는 근거가 확립되어 있습니다. <a class="ref" href="#ref-list2" title="Michie et al., 2011, Implement Sci">R9</a>
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> 기존 <strong>DayLog_Record</strong>(걸음수, 운동시간, 수분섭취, 수면)를 실시간 트리거로 활용합니다.
+                        목표 달성률을 계산해 축하/격려 분기를 자동 결정하고, S1에서 수집한 통증 정보와 S5 프레일티 레벨에 따라
+                        코칭 강도를 자동 조절합니다. "무릎이 아프다"고 한 사람에게 "6,000보 걸으세요"라고 하지 않는 것이 핵심입니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- S4 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #6a1b9a; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S4</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">인지기능 간이 스크리닝 &mdash; "일찍 발견하면 늦출 수 있다"</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> 일본은 인지증(치매) 환자 약 600만 명, MCI(경도인지장애) 추정 400만 명으로
+                        세계 최고 수준의 치매 부담 국가입니다. 그런데 <strong>MCI 단계에서 발견하면 약 16~40%가 정상으로 회복</strong>할 수 있다는
+                        근거가 있습니다. <a class="ref" href="#ref-list2" title="Shimada et al., 2019, Alzheimers Res Ther">R13</a> 문제는 MCI 단계에서는 본인도 가족도 눈치채기 어렵다는 것입니다.
+                        본 시나리오에서 사용하는 지연 회상(Delayed Recall), 언어 유창성(Verbal Fluency)은
+                        MMSE <a class="ref" href="#ref-list2" title="Folstein et al., 1975">R11</a> / HDS-R <a class="ref" href="#ref-list2" title="加藤伸司 et al., 1991">R12</a>에서 발췌한 검증된 항목이며, <strong>단일 점수가 아닌 종단적 변화를 추적</strong>하는 것이 핵심입니다.
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> AI 전화의 고유한 강점이 여기서 빛납니다. 대면 검사는 병원에 가야 하고, 앱 기반 테스트는 시니어가 사용하기 어렵습니다.
+                        <strong>전화 대화 안에 자연스럽게 녹여넣는 방식</strong>은 시니어의 심리적 부담을 최소화합니다.
+                        "테스트"가 아닌 "게임"으로 프레이밍하며, 응답 시간(ms), 단어 수, 멈춤 패턴 등
+                        <strong>음성에서만 추출 가능한 메타데이터</strong>를 함께 기록합니다. <a class="ref" href="#ref-list2" title="König et al., 2015">R14</a>
+                        이 데이터는 매달 축적되어, 3개월 이상 하락 추세가 보이면 자동으로 에스컬레이션이 발동됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- S5 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #c62828; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S5</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">프레일티(허약) 조기 감지 &mdash; 이 서비스의 가장 큰 차별점</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> 프레일티(Frailty, 허약)는 <strong>건강한 상태와 요개호(돌봄 필요) 사이의 중간 단계</strong>입니다.
+                        일본 JAGES 연구(약 20만 명 패널) <a class="ref" href="#ref-list2" title="JAGES, Kondo K et al.">R4</a>에 따르면 65세 이상의 약 11%가 프레일, 32%가 프레프레일 상태입니다.
+                        중요한 것은 <strong>프레프레일 단계에서 개입하면 47%가 건강 상태로 회복</strong>할 수 있다는 점입니다. <a class="ref" href="#ref-list2" title="Yamada et al., 2018, J Am Med Dir Assoc">R17</a>
+                        반면 프레일까지 진행되면 회복률이 15% 이하로 떨어집니다.
+                        본 시나리오의 J-CHS 기준 <a class="ref" href="#ref-list2" title="Satake &amp; Arai, 2020">R16</a>(일본판 Fried 기준 <a class="ref" href="#ref-list2" title="Fried et al., 2001">R18</a>)은 일본 노년의학회가 공식 권장하는 스크리닝 도구입니다.
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> 여기가 인바디의 <strong>결정적 차별점</strong>입니다. 기존의 전화 기반 프레일티 체크는
+                        주관적 응답(5문항)에만 의존합니다. 하지만 우리는 InBody의 <strong>SMM(골격근량) <a class="ref" href="#ref-list2" title="Srikanthan &amp; Karlamangla, 2014">R21</a>, WT(체중), BCofPart(분절 체성분) <a class="ref" href="#ref-list2" title="Chen et al., 2020, AWGS 2019">R22</a></strong>
+                        시계열 데이터로 교차 검증할 수 있습니다.<br>
+                        예: 사용자가 "체중 줄지 않았다"고 응답해도, InBody에서 6개월간 -3.3kg이 확인되면 객관적 양성으로 판정합니다.
+                        주관적 응답 + 객관적 체성분 데이터의 결합은 <strong>어디에도 없는 우리만의 프레일티 감지 시스템</strong>입니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- S6 Rationale -->
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #00838f; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">S6</div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 6px;">긴급 상황 대응 &mdash; 최후의 안전장치</h3>
+                    <div style="margin-bottom: 8px;">
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e8f0fe; color: #1a73e8; margin-right: 6px;">임상 근거</span>
+                        <span style="display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; background: #e0f7fa; color: #00838f;">기술 근거</span>
+                    </div>
+                    <p style="font-size: 0.9rem; line-height: 1.8; margin-bottom: 8px;">
+                        <strong>임상:</strong> 일본 独居高齢者(1인 거주 고령자)는 약 670만 명이며,
+                        이들의 가장 큰 불안은 <strong>"쓰러졌을 때 아무도 모르는 것"</strong>입니다. <a class="ref" href="#ref-list2" title="内閣府 高齢社会白書, 2023">R19</a>
+                        실제로 낙상 후 1시간 이내에 발견되면 사망률이 10% 이하이지만,
+                        24시간 이상 방치되면 사망률이 50%까지 치솟습니다. <a class="ref" href="#ref-list2" title="Tinetti ME, 2003, NEJM">R2</a> <a class="ref" href="#ref-list2" title="Wild et al., 2012, BMJ">R20</a>
+                        또한 뇌졸중의 경우 발증 후 4.5시간 이내 t-PA 투여가 예후를 결정짓습니다. <a class="ref" href="#ref-list2" title="Hacke et al., 2008, ECASS III, NEJM">R32</a>
+                        <strong>정기 전화가 연결되지 않는 것 자체가 강력한 이상 신호</strong>입니다.
+                    </p>
+                    <p style="font-size: 0.9rem; line-height: 1.8;">
+                        <strong>기술:</strong> 이 시나리오는 독립 실행이 아니라, <strong>S1~S5 모든 시나리오에서 자동 트리거</strong>됩니다.
+                        3회 연속 미응답, 대화 중 혼란 감지(응답 지연, 문장 미완성, 반복), 낙상 보고 등이 트리거 조건입니다.
+                        4단계 에스컬레이션 레벨(모니터링 &rarr; 보호자 참고 &rarr; 의료기관 권유 &rarr; 긴급 대응)을 통해
+                        과잉 알림을 방지하면서도 실제 위험 상황에서는 빠르게 대응합니다.
+                        법적으로는 서비스 가입 시 사전 동의를 받아야 하며, 일본 APPI(개인정보보호법) 및 의료법 준수가 필수입니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Summary diagram -->
+            <div style="background: #263238; border-radius: 12px; padding: 28px; margin-top: 8px; color: white;">
+                <h3 style="font-size: 1rem; margin-bottom: 16px; text-align: center; opacity: 0.9;">6개 시나리오의 관계: 예방 케어 피라미드</h3>
+                <div style="text-align: center; font-family: monospace; font-size: 0.88rem; line-height: 2;">
+                    <div style="color: #ef9a9a;">S6 긴급 대응 (최후의 안전장치)</div>
+                    <div style="color: #90a4ae;">&uarr; 이상 징후 감지 시 자동 트리거</div>
+                    <div style="display: flex; justify-content: center; gap: 40px; margin: 4px 0;">
+                        <span style="color: #ce93d8;">S4 인지 스크리닝</span>
+                        <span style="color: #ef9a9a;">S5 프레일티 감지</span>
+                    </div>
+                    <div style="color: #90a4ae;">&uarr; 월/분기 정밀 체크 (S1에 내장)</div>
+                    <div style="display: flex; justify-content: center; gap: 40px; margin: 4px 0;">
+                        <span style="color: #a5d6a7;">S2 InBody 해설</span>
+                        <span style="color: #ffcc80;">S3 행동 코칭</span>
+                    </div>
+                    <div style="color: #90a4ae;">&uarr; 측정/DayLog 이벤트 트리거</div>
+                    <div style="color: #90caf9; font-weight: 700; font-size: 1rem;">S1 정기 건강 체크인 (기반층)</div>
+                    <div style="margin-top: 12px; font-size: 0.78rem; color: #78909c; font-family: sans-serif;">
+                        아래에서 위로 갈수록 빈도는 낮아지지만 임상적 중요도는 높아집니다
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== S1 ==================== -->
+    <div class="scenario" id="s1">
+        <div class="scenario-header">
+            <div class="scenario-num c1">S1</div>
+            <div class="scenario-meta">
+                <h2>정기 건강 체크인</h2>
+                <div class="en">Scheduled Health Check-in Call</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">주 1~2회 스케줄</div></div>
+                <div class="meta-box"><div class="label">통화 시간</div><div class="value">3~5분</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">주관적 건강 상태 수집</div></div>
+                <div class="meta-box"><div class="label">우선순위</div><div class="value">1순위 (서비스 코어)</div></div>
+            </div>
+
+            <!-- Phase 1: Opening -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 1 - 인사 및 본인 확인</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (발신)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">もしもし、田中さんですか？InBody健康サポートのアイです。いつもの健康チェックのお電話です。今、少しお時間よろしいですか？</span>
+                                <span class="kr">여보세요, 다나카 씨이신가요? 인바디 건강서포트의 아이입니다. 정기 건강체크 전화 드렸습니다. 지금 잠시 시간 괜찮으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch">
+                        <div class="branch-title">분기 - 통화 가능 여부</div>
+                        <div class="branch-option">
+                            <span class="branch-label positive">수락</span>
+                            <span class="branch-desc">"はい、大丈夫ですよ" &rarr; Phase 2로 진행</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label neutral">바쁨</span>
+                            <span class="branch-desc">"今ちょっと..." &rarr; "承知しました。後ほどまたお電話しますね" (1시간 후 재시도, 최대 2회)</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label negative">응답 없음</span>
+                            <span class="branch-desc">3회 연속 미응답 &rarr; S6(긴급 대응) 프로토콜 발동</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2: General Condition -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 2 - 전반적 컨디션 확인</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">ありがとうございます。では早速ですが、今週の体調はいかがですか？1が「とても悪い」、5が「とても良い」だとすると、何点くらいでしょうか？</span>
+                                <span class="kr">감사합니다. 바로 여쭤볼게요, 이번 주 몸 상태는 어떠세요? 1이 "매우 나쁨", 5가 "매우 좋음"이라면 몇 점 정도일까요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon user">USR</div>
+                        <div class="msg-content">
+                            <div class="msg-role user">사용자 (예시)</div>
+                            <div class="msg-bubble user">
+                                <span class="jp">うーん、3くらいかな。ちょっと膝が痛くてね。</span>
+                                <span class="kr">음, 3 정도인 것 같아요. 무릎이 좀 아파서요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (공감 + 추가 질문)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">3点ですね、わかりました。膝が痛いとのこと、それは大変ですね。その痛みはいつ頃から続いていますか？</span>
+                                <span class="kr">3점이시군요. 무릎이 아프시다니 힘드시겠어요. 그 통증은 언제부터 계속되고 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 (내부 로직)</div>
+                            <div class="msg-bubble system">
+                                record: { general_condition: 3, symptom: "knee_pain", symptom_onset: "~1week" }<br>
+                                통증 부위가 하지 &rarr; 낙상 위험 질문 자동 트리거
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3: Key Health Items -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 3 - 핵심 건강 항목 체크</span></div>
+                <div class="conv-flow">
+                    <!-- Sleep -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (수면)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">最近、よく眠れていますか？夜中に何度も目が覚めることはありますか？</span>
+                                <span class="kr">최근 잘 주무시고 계세요? 한밤중에 여러 번 깨시는 일은 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Appetite -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (식욕)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">食欲はいかがですか？ちゃんと三食食べられていますか？</span>
+                                <span class="kr">식욕은 어떠세요? 하루 세 끼 잘 드시고 계세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fall check -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (낙상 확인 - 하지 통증 감지시 자동 추가)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">膝が痛いとのことですが、この一週間で転んだり、つまずいたりしたことはありますか？</span>
+                                <span class="kr">무릎이 아프시다고 하셨는데, 이번 한 주간 넘어지거나 비틀거리신 적은 있으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Medication -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (복약 - 프로필에 투약 이력이 있는 경우)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">お薬はきちんと飲めていますか？血圧のお薬も忘れずに飲んでいらっしゃいますか？</span>
+                                <span class="kr">약은 잘 드시고 계세요? 혈압약도 빠짐없이 드시고 계신가요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Social activity -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (사회 활동)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">今週はお出かけされましたか？お友達と会ったり、何か楽しいことはありましたか？</span>
+                                <span class="kr">이번 주에 외출하셨나요? 친구분을 만나거나, 즐거운 일은 있으셨어요?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4: Closing -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 4 - 마무리 및 다음 액션</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (요약 + 조언)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、今日もお話しいただきありがとうございます。膝の痛みが続くようでしたら、一度お医者さんに相談されるのも良いかもしれませんね。無理せず、できる範囲で体を動かしてくださいね。</span>
+                                <span class="kr">다나카 씨, 오늘도 말씀 나눠주셔서 감사합니다. 무릎 통증이 계속되시면 한 번 의사 선생님께 상담해보시는 것도 좋을 것 같아요. 무리하지 마시고, 가능한 범위에서 몸을 움직여주세요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (다음 전화 예고)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">次は木曜日の午前10時頃にまたお電話しますね。お体に気をつけてお過ごしください。それでは、失礼いたします。</span>
+                                <span class="kr">다음은 목요일 오전 10시쯤에 다시 전화 드리겠습니다. 건강 조심하세요. 그럼 안녕히 계세요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-collect">
+                <h4>수집 데이터 항목</h4>
+                <div class="data-tags">
+                    <span class="data-tag">general_condition (1-5)</span>
+                    <span class="data-tag">pain_location</span>
+                    <span class="data-tag">pain_duration</span>
+                    <span class="data-tag">sleep_quality</span>
+                    <span class="data-tag">appetite_level</span>
+                    <span class="data-tag">fall_history</span>
+                    <span class="data-tag">medication_compliance</span>
+                    <span class="data-tag">social_activity</span>
+                    <span class="data-tag">mood_sentiment</span>
+                    <span class="data-tag">call_duration</span>
+                </div>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> 질문은 최대 5~6개로 제한. 매 통화마다 동일 질문이 아닌, 프로필/이전 응답 기반으로 질문을 자동 조정. 하지 통증 보고 시 낙상 질문이 자동 삽입되는 것처럼 조건부 분기를 활용. 낙상 스크리닝 질문은 Tinetti(2003) <a class="ref" href="#ref-list2">R2</a>의 임상 가이드라인을 참조.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S2 ==================== -->
+    <div class="scenario" id="s2">
+        <div class="scenario-header">
+            <div class="scenario-num c2">S2</div>
+            <div class="scenario-meta">
+                <h2>InBody 측정 결과 음성 해설</h2>
+                <div class="en">Voice-Delivered InBody Report</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">InBody 측정 완료 이벤트</div></div>
+                <div class="meta-box"><div class="label">통화 시간</div><div class="value">2~4분</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">측정 결과 해설 + 동기부여</div></div>
+                <div class="meta-box"><div class="label">데이터 소스</div><div class="value">TrendReport CoreSentence</div></div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 1 - 측정 확인 및 인사</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、こんにちは。アイです。先ほどInBodyで体を測定されましたね。結果をお伝えしますね。</span>
+                                <span class="kr">다나카 씨, 안녕하세요. 아이입니다. 방금 인바디 측정을 하셨죠. 결과를 알려드릴게요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 2 - FitScore 핵심 결과</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon data">DB</div>
+                        <div class="msg-content">
+                            <div class="msg-role data">시스템 데이터 로드</div>
+                            <div class="msg-bubble data">
+                                FitScore: 724 (+15), WT: 68.2kg (-0.5), SMM: 26.8kg (+0.3), PBF: 24.1% (-0.8),
+                                BMI_Idx: 6 (상위 35%), PBF_Idx: 5 (상위 50%), VFA: 88cm&sup2; (-3)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (핵심 결과)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">まず、フィットスコアは724点です。先月より15点上がりましたよ。おめでとうございます！</span>
+                                <span class="kr">먼저, 핏스코어는 724점입니다. 지난달보다 15점 올랐어요. 축하드립니다!</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (원인 분석)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">特に良かったのは、筋肉量が0.3キロ増えて26.8キロになったことです。体脂肪率も24.1%に下がりました。運動の成果がしっかり出ていますね。</span>
+                                <span class="kr">특히 좋았던 것은 근육량이 0.3kg 늘어 26.8kg이 된 것입니다. 체지방률도 24.1%로 내려갔어요. 운동의 성과가 확실히 나타나고 있네요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 3 - 동년배 비교 (Cluster)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">同じ60代男性の中での位置も見てみましょう。体重は上位35%、体脂肪率はちょうど真ん中くらいです。平均よりもしっかりした筋肉をお持ちですよ。</span>
+                                <span class="kr">같은 60대 남성 중에서의 위치도 볼까요. 체중은 상위 35%, 체지방률은 딱 중간 정도입니다. 평균보다 탄탄한 근육을 갖고 계세요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 4 - 주의 지표 (해당 시)</span></div>
+                <div class="conv-flow">
+                    <div class="branch">
+                        <div class="branch-title">조건부 분기 - 위험 지표 존재 여부</div>
+                        <div class="branch-option">
+                            <span class="branch-label positive">이상 없음</span>
+                            <span class="branch-desc">&rarr; Phase 5로 바로 이동</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label alert">VFA 100+ 또는 SMM 급감</span>
+                            <span class="branch-desc">&rarr; 아래 경고 멘트 삽입</span>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon warn">!</div>
+                        <div class="msg-content">
+                            <div class="msg-role warn">AI (위험 지표 경고 예시 - VFA 높을 경우)</div>
+                            <div class="msg-bubble warn">
+                                <span class="jp">一つだけ気になる点があります。内臓脂肪がまだ少し高めです。でも前回より3ポイント下がっていますので、このまま続ければ大丈夫ですよ。</span>
+                                <span class="kr">한 가지 신경 쓰이는 점이 있어요. 내장지방이 아직 조금 높은 편이에요. 하지만 지난번보다 3포인트 내려갔으니, 이대로 계속하시면 괜찮을 거예요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">Phase 5 - 마무리 (다음 목표)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">この調子で続けていきましょう。次の測定では、フィットスコア730点を目指してみましょうか。何かご質問はありますか？</span>
+                                <span class="kr">이 조자로 계속해봅시다. 다음 측정에서는 핏스코어 730점을 목표로 해볼까요? 혹시 궁금한 점이 있으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="branch">
+                        <div class="branch-title">분기 - 질문 여부</div>
+                        <div class="branch-option">
+                            <span class="branch-label positive">질문 있음</span>
+                            <span class="branch-desc">&rarr; Q&A 프롬프트 엔진으로 전환 (기존 QAprompt 모듈 활용)</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label neutral">질문 없음</span>
+                            <span class="branch-desc">&rarr; 인사 후 종료</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> 기존 TrendReport의 CoreSentence, ClusterModule, ReferenceModule 데이터를 그대로 활용. 수치를 나열하지 않고 "근육이 늘었다", "지방이 줄었다" 등 변화 중심으로 쉽게 전달. Health Literacy가 낮은 시니어에게는 이 변환이 필수적 <a class="ref" href="#ref-list2">R5</a>. 나쁜 소식은 반드시 개선 방향과 함께 전달 ("줄이는 방법" 포함). 내장지방 100cm&sup2; 경고 기준은 일본비만학회 <a class="ref" href="#ref-list2">R7</a> 근거.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S3 ==================== -->
+    <div class="scenario" id="s3">
+        <div class="scenario-header">
+            <div class="scenario-num c3">S3</div>
+            <div class="scenario-meta">
+                <h2>동기부여 및 행동 코칭</h2>
+                <div class="en">Motivational Coaching Call</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">DayLog 목표 달성/미달</div></div>
+                <div class="meta-box"><div class="label">통화 시간</div><div class="value">2~3분</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">행동 유지/변화 촉진</div></div>
+                <div class="meta-box"><div class="label">데이터 소스</div><div class="value">DayLog_Record</div></div>
+            </div>
+
+            <!-- Goal Achievement -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">시나리오 A - 목표 달성 축하</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon data">DB</div>
+                        <div class="msg-content">
+                            <div class="msg-role data">시스템</div>
+                            <div class="msg-bubble data">
+                                주간 목표: 6,000보/일 x 5일 &rarr; 실적: 6,200보 평균 x 6일 달성 (120%)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (축하)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、素晴らしいです！今週の歩数目標、見事に達成されましたね。1日平均6,200歩で、目標の5日間を超えて6日も達成されています。本当にすごいです。</span>
+                                <span class="kr">다나카 씨, 대단하세요! 이번 주 걸음수 목표를 훌륭하게 달성하셨어요. 하루 평균 6,200보로, 목표 5일을 넘어 6일이나 달성하셨습니다. 정말 대단해요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (다음 목표 제안)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">来週は少しだけステップアップして、6,500歩を目標にしてみましょうか？それとも今のペースを維持されますか？</span>
+                                <span class="kr">다음 주는 조금만 높여서 6,500보를 목표로 해볼까요? 아니면 지금 페이스를 유지하시겠어요?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goal Not Met -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">시나리오 B - 목표 미달 격려</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon data">DB</div>
+                        <div class="msg-content">
+                            <div class="msg-role data">시스템</div>
+                            <div class="msg-bubble data">
+                                주간 목표: 6,000보/일 x 5일 &rarr; 실적: 3,800보 평균 x 3일 (50%)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (공감 + 긍정적 포인트 발견)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、今週も頑張りましたね。3日間は目標通りに歩けていましたよ。膝の調子があまり良くなかったのかもしれませんね。無理は禁物です。</span>
+                                <span class="kr">다나카 씨, 이번 주도 수고하셨어요. 3일간은 목표대로 걸으셨어요. 무릎 상태가 좋지 않으셨을 수도 있겠죠. 무리는 금물이에요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (대안 제시)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">膝に負担が少ない運動もありますよ。例えば、椅子に座ったままできるストレッチはいかがですか？来週はそれも取り入れてみましょうか。</span>
+                                <span class="kr">무릎에 부담이 적은 운동도 있어요. 예를 들어, 의자에 앉아서 할 수 있는 스트레칭은 어떨까요? 다음 주에 그것도 함께해볼까요?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diet Coaching -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">시나리오 C - 영양 코칭 (단백질 부족 감지)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">あと一つ、お食事のことなんですが、筋肉を維持するためにはタンパク質がとても大事なんです。毎食、卵、お豆腐、お魚、お肉のどれかを一品入れるようにしていただけると、筋肉の維持に役立ちますよ。</span>
+                                <span class="kr">하나 더, 식사에 대해서인데요, 근육을 유지하려면 단백질이 매우 중요합니다. 매 끼니 달걀, 두부, 생선, 고기 중 하나를 한 가지씩 넣어주시면 근육 유지에 도움이 돼요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> 절대 비난하지 않는다. 미달 시에도 달성한 부분을 먼저 칭찬한 뒤, 원인을 공감하고 대안을 제시. 행동 변화 이론(Behaviour Change Wheel) <a class="ref" href="#ref-list2">R9</a> 기반 설계. 이전 S1 체크인에서 수집한 통증/컨디션 정보를 연계하여 맥락 있는 코칭 제공. 목표는 사용자가 직접 선택하도록 유도 (자기결정감). 단백질 권장량은 PROT-AGE 가이드라인 <a class="ref" href="#ref-list2">R10</a> 근거 (1.0~1.2g/kg/day).
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S4 ==================== -->
+    <div class="scenario" id="s4">
+        <div class="scenario-header">
+            <div class="scenario-num c4">S4</div>
+            <div class="scenario-meta">
+                <h2>인지기능 간이 스크리닝</h2>
+                <div class="en">Cognitive Screening (Embedded in Conversation)</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">월 1회 (S1에 내장)</div></div>
+                <div class="meta-box"><div class="label">통화 시간</div><div class="value">+2~3분 (S1에 추가)</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">인지기능 변화 종단 추적</div></div>
+                <div class="meta-box"><div class="label">참고 기준</div><div class="value">MMSE/HDS-R 변형</div></div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">테스트 1 - 시간 지남력 (자연스러운 대화 속)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (자연스러운 전환)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">そういえば田中さん、今日は何曜日でしたっけ？私、うっかりしていて。</span>
+                                <span class="kr">그러고 보니 다나카 씨, 오늘 무슨 요일이었죠? 제가 깜빡해서요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 (판정)</div>
+                            <div class="msg-bubble system">
+                                정답 &rarr; orientation_score: 1 | 오답 &rarr; orientation_score: 0<br>
+                                응답 시간 기록: response_time_ms
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">테스트 2 - 단어 기억 (등록)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">ところで、ちょっとしたゲームをしませんか？これから3つの言葉を言いますので、覚えてくださいね。「桜」「猫」「電車」です。後でまた聞きますからね。</span>
+                                <span class="kr">그런데, 간단한 게임 하나 해볼까요? 지금부터 세 단어를 말씀드릴 테니 기억해주세요. "벚꽃", "고양이", "전철"입니다. 나중에 다시 여쭤볼게요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">테스트 3 - 언어 유창성 (사이에 다른 대화 삽입)</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (S1 건강 체크인 질문 2~3개 진행 후)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、もう一つゲームです。1分間で、思いつく野菜の名前をできるだけたくさん言ってみてください。よーい、スタート！</span>
+                                <span class="kr">다나카 씨, 하나 더 게임이에요. 1분 동안, 떠오르는 채소 이름을 최대한 많이 말씀해보세요. 자, 시작!</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 (측정)</div>
+                            <div class="msg-bubble system">
+                                60초 타이머 &rarr; 단어 수 카운트, 반복 횟수, 멈춤 시간 분석<br>
+                                verbal_fluency_count: N개 (정상 기준: 13개 이상/분 <a class="ref" href="#ref-list2">R33</a>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">테스트 4 - 지연 회상</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">さっき覚えていただいた3つの言葉、覚えていますか？思い出せる範囲で教えてください。</span>
+                                <span class="kr">아까 기억해달라고 한 세 단어, 기억나세요? 생각나는 만큼 말씀해주세요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon user">USR</div>
+                        <div class="msg-content">
+                            <div class="msg-role user">사용자 (예시)</div>
+                            <div class="msg-bubble user">
+                                <span class="jp">えーと、桜と...猫？もう一つは何だっけ...</span>
+                                <span class="kr">음, 벚꽃이랑... 고양이? 하나 더 뭐였지...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (긍정적 반응 - 점수와 무관)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">2つも覚えていらっしゃいましたね。もう一つは「電車」でしたよ。よく頑張りました！</span>
+                                <span class="kr">2개나 기억하고 계셨네요. 나머지 하나는 "전철"이었어요. 잘 하셨어요!</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 (기록)</div>
+                            <div class="msg-bubble system">
+                                delayed_recall_score: 2/3 | 자유 회상: 2, 힌트 후 회상: 0, 미회상: 1<br>
+                                <strong>종단 추적</strong>: 3개월 전 3/3 &rarr; 2개월 전 3/3 &rarr; 이번 달 2/3<br>
+                                &rarr; 아직 정상 범위이나, 다음 달 재확인 필요 플래그 설정
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="escalation-box">
+                <h4>에스컬레이션 기준</h4>
+                <ul>
+                    <li>지연 회상 0/3 &rarr; 즉시 보호자 알림 + 의료기관 권유</li>
+                    <li>언어 유창성 8개 미만/분 &rarr; 다음 S1에서 재검증 + 보호자 참고 알림</li>
+                    <li>3개월 연속 하락 추세 &rarr; "전문의 상담 권유" 멘트 + 보호자 리포트</li>
+                    <li>시간 지남력 2회 연속 오답 &rarr; 주의 관찰 레벨 상향</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> 절대 "테스트"라고 부르지 않는다. "게임", "퀴즈" 등 가벼운 표현 사용. 결과에 대해 부정적 피드백 금지 - 항상 칭찬 후 정답 알려주기. 핵심은 <strong>단일 점수가 아닌 종단적 변화 추적</strong> (Shimada et al. <a class="ref" href="#ref-list2">R13</a>의 MCI 회복 연구 방법론 참조). 음성 메타데이터 분석은 König et al. <a class="ref" href="#ref-list2">R14</a> 근거. 매달 같은 형식이 아닌 단어 세트/카테고리를 변경하여 학습 효과 방지.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S5 ==================== -->
+    <div class="scenario" id="s5">
+        <div class="scenario-header">
+            <div class="scenario-num c5">S5</div>
+            <div class="scenario-meta">
+                <h2>프레일티(허약) 조기 감지</h2>
+                <div class="en">Frailty Early Detection (J-CHS Based)</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">분기 1회 (S1에 내장)</div></div>
+                <div class="meta-box"><div class="label">통화 시간</div><div class="value">+3~4분 (S1에 추가)</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">프레일티 5항목 체크</div></div>
+                <div class="meta-box"><div class="label">교차 검증</div><div class="value">InBody SMM/WT 트렌드</div></div>
+            </div>
+
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">J-CHS 5항목 음성 체크</span></div>
+                <div class="conv-flow">
+                    <!-- Q1: Weight loss -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q1 체중 감소)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、今日は少し詳しく体の調子を確認させてくださいね。まず、最近6ヶ月くらいで、意図せず2〜3キロ以上体重が減ったと感じますか？</span>
+                                <span class="kr">다나카 씨, 오늘은 좀 더 자세히 몸 상태를 확인해볼게요. 먼저, 최근 6개월 정도에 의도치 않게 2~3kg 이상 체중이 줄었다고 느끼세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">교차 검증</div>
+                            <div class="msg-bubble system">
+                                InBody WT 6개월 트렌드 확인: 71.5kg &rarr; 68.2kg (-3.3kg, -4.6%)<br>
+                                <strong>객관적 데이터와 일치 &rarr; frailty_q1: 1 (양성)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2: Strength -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q2 근력 저하)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">ペットボトルのフタを開けるのが以前より大変になったと感じますか？または、階段を手すりなしで上るのが辛くなりましたか？</span>
+                                <span class="kr">페트병 뚜껑을 여는 게 예전보다 힘들어졌다고 느끼세요? 또는, 계단을 난간 없이 오르는 게 힘들어지셨나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">교차 검증</div>
+                            <div class="msg-bubble system">
+                                InBody SMM 6개월 트렌드: 27.5kg &rarr; 26.8kg (-2.5%)<br>
+                                AWGS 기준 SMI 체크: 26.8 &times; 0.5976 - 2.248 = ASM 추정 &rarr; 기준치 상회<br>
+                                <strong>주관적 호소 + 객관적 근육량 감소 추세 &rarr; frailty_q2: 1 (양성)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q3: Fatigue -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q3 피로)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">ここ2週間くらいで、わけもなく疲れたような感じがすることはありますか？</span>
+                                <span class="kr">최근 2주 정도, 이유 없이 피곤한 느낌이 드시는 일이 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4: Walking speed -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q4 보행 속도)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">横断歩道を青信号の間に渡りきれないと感じたことはありますか？以前と比べて歩くスピードが遅くなったと思いますか？</span>
+                                <span class="kr">횡단보도를 파란불 사이에 다 건너지 못한다고 느끼신 적 있으세요? 예전에 비해 걷는 속도가 느려졌다고 느끼세요?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q5: Physical activity -->
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q5 신체 활동)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">週に1回以上、散歩や体操などの運動をされていますか？以前と比べて外出する回数は減りましたか？</span>
+                                <span class="kr">주 1회 이상, 산책이나 체조 같은 운동을 하고 계세요? 예전에 비해 외출하는 횟수가 줄었나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">판정 및 피드백</span></div>
+                <div class="conv-flow">
+                    <div class="branch">
+                        <div class="branch-title">J-CHS 판정 기준</div>
+                        <div class="branch-option">
+                            <span class="branch-label positive">0개 양성 = 건강 (Robust)</span>
+                            <span class="branch-desc">&rarr; "素晴らしいですね。今の生活を続けてください" 격려</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label alert">1~2개 양성 = 프레프레일 (Pre-frail)</span>
+                            <span class="branch-desc">&rarr; 아래 대화 + 생활 개선 조언 + 모니터링 빈도 상향</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label negative">3개 이상 양성 = 프레일 (Frail)</span>
+                            <span class="branch-desc">&rarr; 아래 대화 + 의료기관 권유 + 보호자/의료기관 알림</span>
+                        </div>
+                    </div>
+
+                    <!-- Pre-frail example -->
+                    <div class="msg">
+                        <div class="msg-icon warn">!</div>
+                        <div class="msg-content">
+                            <div class="msg-role warn">AI (프레프레일 판정 시)</div>
+                            <div class="msg-bubble warn">
+                                <span class="jp">田中さん、お話を伺うと、少し体の変化が出てきているようですね。でもご安心ください。今の段階でしっかり対策すれば、十分に改善できますよ。</span>
+                                <span class="kr">다나카 씨, 말씀을 들어보니 조금 몸의 변화가 나타나고 있는 것 같아요. 하지만 안심하세요. 지금 단계에서 제대로 대처하면 충분히 개선할 수 있어요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (구체적 조언)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">特に大切なのは3つです。一つ目は、毎日少しでも歩くこと。二つ目は、タンパク質をしっかり摂ること。三つ目は、人と会う機会を作ることです。来週のお電話で、この3つについてもう少し詳しくお話ししますね。</span>
+                                <span class="kr">특히 중요한 것은 3가지입니다. 첫째, 매일 조금이라도 걷기. 둘째, 단백질을 충분히 섭취하기. 셋째, 사람을 만나는 기회를 만들기입니다. 다음 주 전화에서 이 3가지에 대해 좀 더 자세히 이야기해드릴게요.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-collect">
+                <h4>수집 데이터 항목</h4>
+                <div class="data-tags">
+                    <span class="data-tag">frailty_q1_weight_loss (0/1)</span>
+                    <span class="data-tag">frailty_q2_strength (0/1)</span>
+                    <span class="data-tag">frailty_q3_fatigue (0/1)</span>
+                    <span class="data-tag">frailty_q4_walking_speed (0/1)</span>
+                    <span class="data-tag">frailty_q5_activity (0/1)</span>
+                    <span class="data-tag">frailty_total_score (0~5)</span>
+                    <span class="data-tag">frailty_level (robust/pre-frail/frail)</span>
+                    <span class="data-tag">inbody_cross_validation</span>
+                </div>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> "허약" "노쇠" 등의 부정적 단어를 절대 사용하지 않는다. 질문은 구체적 생활 상황으로 변환 (횡단보도, 페트병 등). J-CHS 5항목은 Fried phenotype <a class="ref" href="#ref-list2">R18</a>의 일본판 <a class="ref" href="#ref-list2">R16</a>. 핵심 차별점은 <strong>InBody 객관 데이터와의 교차 검증</strong> - 주관적 응답만으로는 정확도가 낮지만, WT/SMM 트렌드와 결합하면 신뢰도가 크게 상승 <a class="ref" href="#ref-list2">R22</a>. AWGS 2019 근감소증 기준으로 SMI 산출.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S6 ==================== -->
+    <div class="scenario" id="s6">
+        <div class="scenario-header">
+            <div class="scenario-num c6">S6</div>
+            <div class="scenario-meta">
+                <h2>긴급 상황 대응</h2>
+                <div class="en">Emergency Response Protocol</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <div class="meta-grid">
+                <div class="meta-box"><div class="label">트리거</div><div class="value">이상 징후 감지</div></div>
+                <div class="meta-box"><div class="label">응답 시간</div><div class="value">즉시</div></div>
+                <div class="meta-box"><div class="label">목적</div><div class="value">안전 확인 + 에스컬레이션</div></div>
+                <div class="meta-box"><div class="label">법적 요건</div><div class="value">개인정보보호/긴급통보 준수</div></div>
+            </div>
+
+            <!-- Trigger A: No answer -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">트리거 A - 정기 전화 3회 연속 미응답</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 감지</div>
+                            <div class="msg-bubble system">
+                                S1 정기 체크인 3회 연속 미응답<br>
+                                1차 (월 10:00) 미응답 &rarr; 2차 (월 14:00) 미응답 &rarr; 3차 (화 10:00) 미응답<br>
+                                <strong>&rarr; Emergency Level 1 발동</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (최종 확인 전화)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、InBody健康サポートのアイです。何度かお電話しましたが繋がらなかったので、心配してお電話しています。お体の具合は大丈夫ですか？このメッセージをお聞きになりましたら、折り返しお電話いただくか、アプリの「大丈夫」ボタンを押してください。</span>
+                                <span class="kr">다나카 씨, 인바디 건강서포트의 아이입니다. 몇 차례 전화드렸는데 연결이 안 되어서 걱정되어 전화드립니다. 몸은 괜찮으세요? 이 메시지를 들으시면 회신 전화 주시거나, 앱의 "괜찮아요" 버튼을 눌러주세요.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon danger">!!</div>
+                        <div class="msg-content">
+                            <div class="msg-role danger">시스템 (보호자 알림 - 4차 미응답 시)</div>
+                            <div class="msg-bubble danger">
+                                <strong>보호자 SMS 자동 발송:</strong><br>
+                                "田中太郎さんと3日間連絡が取れません。InBody健康サポートより。ご確認をお願いいたします。連絡先: 0120-XXX-XXX"<br>
+                                <span class="kr">"다나카 타로 씨와 3일간 연락이 닿지 않습니다. 인바디 건강서포트에서 알려드립니다. 확인 부탁드립니다."</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trigger B: Fall report -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">트리거 B - 낙상 보고</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon user">USR</div>
+                        <div class="msg-content">
+                            <div class="msg-role user">사용자 (S1 체크인 중)</div>
+                            <div class="msg-bubble user">
+                                <span class="jp">実は昨日、階段で転んでしまって...</span>
+                                <span class="kr">사실 어제 계단에서 넘어져서...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (즉시 상세 확인)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">それは大変でしたね。大丈夫ですか？いくつか確認させてください。転んだ時に頭を打ちましたか？</span>
+                                <span class="kr">세상에, 괜찮으세요? 몇 가지 확인시켜주세요. 넘어졌을 때 머리를 부딪히셨나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (추가 확인)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">今、どこか痛いところはありますか？歩けますか？病院には行かれましたか？</span>
+                                <span class="kr">지금 어디 아픈 데는 있으세요? 걸을 수 있으세요? 병원에는 가셨나요?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch">
+                        <div class="branch-title">분기 - 낙상 심각도 판정</div>
+                        <div class="branch-option">
+                            <span class="branch-label positive">경미 (걸을 수 있음, 두부 타박 없음)</span>
+                            <span class="branch-desc">&rarr; 기록 저장 + 다음 S1에서 재확인 + 낙상 예방 조언</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label alert">중등도 (통증 지속, 멍/부기)</span>
+                            <span class="branch-desc">&rarr; 정형외과 방문 권유 + 보호자 참고 알림</span>
+                        </div>
+                        <div class="branch-option">
+                            <span class="branch-label negative">중증 (두부 타박, 보행 불가, 의식 혼미)</span>
+                            <span class="branch-desc">&rarr; 즉시 119 안내 + 보호자 긴급 연락 + 의료기관 알림</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trigger C: Confused speech -->
+            <div class="conv-section">
+                <div class="phase-divider"><span class="phase-label">트리거 C - 대화 중 혼란 감지</span></div>
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">시스템 (실시간 분석)</div>
+                            <div class="msg-bubble system">
+                                이상 징후 감지:<br>
+                                - 응답 지연 &gt; 15초 (평소 3초)<br>
+                                - 문장 미완성 비율 60% (평소 10%)<br>
+                                - 동일 단어 반복 4회<br>
+                                - 본인 이름/날짜 혼동<br>
+                                <strong>&rarr; confusion_alert: TRUE</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (차분하게 확인)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、ゆっくりで大丈夫ですよ。今日はいつもと少し様子が違うようですが、お体の具合はいかがですか？どこか痛いところや、気分が悪いところはありませんか？</span>
+                                <span class="kr">다나카 씨, 천천히 하셔도 괜찮아요. 오늘은 평소와 조금 다른 것 같은데, 몸 상태는 어떠세요? 어디 아프거나 기분이 안 좋은 데는 없으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon danger">!!</div>
+                        <div class="msg-content">
+                            <div class="msg-role danger">시스템 (자동 에스컬레이션)</div>
+                            <div class="msg-bubble danger">
+                                통화 종료 후 즉시:<br>
+                                1. 보호자에게 "오늘 통화에서 평소와 다른 양상이 관찰됨" 알림<br>
+                                2. 통화 요약 리포트 자동 생성 &rarr; 의료기관 대시보드 전송<br>
+                                3. 다음 S1 체크인을 24시간 내로 앞당김
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="escalation-box">
+                <h4>에스컬레이션 레벨 정의</h4>
+                <ul>
+                    <li><strong>Level 0 (모니터링)</strong>: 단일 이상 징후 &rarr; 기록 + 다음 통화 시 재확인</li>
+                    <li><strong>Level 1 (보호자 참고)</strong>: 반복 이상 징후 &rarr; 보호자에게 참고 알림 (SMS)</li>
+                    <li><strong>Level 2 (의료기관 권유)</strong>: 프레일 판정 / 인지기능 급락 &rarr; 병원 방문 권유 + 보호자 알림</li>
+                    <li><strong>Level 3 (긴급 대응)</strong>: 두부 외상 / 보행 불가 / 의식 혼미 &rarr; 119 안내 + 보호자 즉시 연락 + 의료기관 알림</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>설계 포인트:</strong> AI는 진단하지 않는다. "뇌졸중 같다" 등의 의학적 판단은 절대 금지. 사실만 전달하고 전문가 연결을 유도. 낙상 후 조기 발견의 사망률 감소는 Wild et al. <a class="ref" href="#ref-list2">R20</a> 근거. 뇌졸중 t-PA 시간 제한은 ECASS III <a class="ref" href="#ref-list2">R32</a>. 모든 에스컬레이션은 사전 동의(서비스 가입 시) 기반으로만 작동. 일본 개인정보보호법(APPI) 및 의료법 준수 필수.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== S1 Extended Modules ==================== -->
+    <div class="scenario" id="s1ext">
+        <div class="scenario-header" style="background: linear-gradient(135deg, #1565c0, #1976d2); border-bottom:none;">
+            <div class="scenario-num" style="background:white; color:#1565c0;">S1+</div>
+            <div class="scenario-meta">
+                <h2 style="color:white;">S1 확장 모듈 - 포괄적 노인 건강 평가</h2>
+                <div class="en" style="color:rgba(255,255,255,0.7);">Comprehensive Geriatric Assessment Modules (Embedded in S1)</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+
+            <!-- Overview -->
+            <div style="background:#f1f3f4; border-radius:12px; padding:20px 24px; margin-bottom:24px; font-size:0.92rem; line-height:1.8;">
+                기존 S1~S6이 커버하지 못하는 <strong>7개 핵심 영역</strong>을 S1 정기 체크인에 주기별로 내장합니다.
+                별도 시나리오 번호를 추가하지 않고, S1 통화 시 해당 주기가 되면 자동으로 모듈이 삽입되는 구조입니다.<br><br>
+                <strong>설계 원칙:</strong> 한 통화에 확장 모듈은 최대 2개까지만 삽입. 분기 모듈 4개는 매달 1개씩 분산 배치하여 특정 통화가 과도하게 길어지는 것을 방지합니다.
+            </div>
+
+            <!-- Schedule diagram -->
+            <div style="background:#263238; border-radius:12px; padding:24px; margin-bottom:28px; color:white;">
+                <h3 style="font-size:0.95rem; margin-bottom:14px; text-align:center; opacity:0.9;">S1 확장 모듈 연간 배치 스케줄</h3>
+                <div style="font-family:monospace; font-size:0.8rem; line-height:2; text-align:center;">
+                    <div style="color:#90caf9; font-weight:700;">S1 기본 (매주): 컨디션 / 수면 / 식욕 / 통증 / 사회활동</div>
+                    <div style="color:#ce93d8;">S4 인지 스크리닝 (매월 1회): 1월, 2월, 3월...</div>
+                    <div style="color:#ef9a9a;">S5 프레일티 (분기 1회): 1월, 4월, 7월, 10월</div>
+                    <div style="color:#90a4ae;">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; 아래: 신규 확장 모듈 &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</div>
+                    <div style="color:#ffcc80;">M1 우울 스크리닝 (분기 1회): 2월, 5월, 8월, 11월</div>
+                    <div style="color:#a5d6a7;">M2 구강/삼킴 체크 (분기 1회): 3월, 6월, 9월, 12월</div>
+                    <div style="color:#80deea;">M3 영양 상태 (분기 1회): 1월, 4월, 7월, 10월 (S5와 동시)</div>
+                    <div style="color:#f48fb1;">M4 외로움 체크 (분기 1회): 2월, 5월, 8월, 11월 (M1과 동시)</div>
+                    <div style="color:#b0bec5;">M5 ADL/IADL (6개월 1회): 1월, 7월</div>
+                    <div style="color:#b0bec5;">M6 다약제 복용 (6개월 1회): 4월, 10월</div>
+                    <div style="color:#b0bec5;">M7 수면 장애 (6개월 1회): 1월, 7월 (M5와 동시)</div>
+                </div>
+            </div>
+
+            <!-- ===== M1: Depression ===== -->
+            <div style="border:2px solid #ff9800; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#ff9800; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M1</span>
+                    <span style="font-size:1.05rem; font-weight:700;">우울 스크리닝 (GDS-5 변형)</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">분기 1회 | +2분 | 참고: Hoyl et al., 1999 <a class="ref" href="#ref-list2">R34</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (자연스러운 전환)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">田中さん、最近の気持ちについても少しお聞きしてもいいですか？</span>
+                                <span class="kr">다나카 씨, 최근 기분에 대해서도 좀 여쭤봐도 될까요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (GDS-5 Q1)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">毎日の生活に満足していますか？</span>
+                                <span class="kr">매일의 생활에 만족하시나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (GDS-5 Q2)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">以前楽しんでいたことに、興味がなくなったと感じますか？</span>
+                                <span class="kr">이전에 즐기던 일에 흥미가 없어졌다고 느끼세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (GDS-5 Q3~Q5)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">生きていることが空しいと感じることはありますか？退屈だと感じることが多いですか？気分が明るいことが多いですか？</span>
+                                <span class="kr">살아있는 것이 허무하다고 느끼신 적이 있나요? 지루하다고 느끼는 때가 많으세요? 기분이 밝은 날이 많으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                GDS-5 점수: 0~1 = 정상 | 2 = 경계 | 3~5 = 우울 의심<br>
+                                <strong>2점 이상 &rarr; S1 다음 통화에서 재확인 + 3점 이상 &rarr; 의료기관 권유 + 보호자 알림</strong><br>
+                                S1 SentimentScore, S4 음성 톤 분석 결과와 교차 검증
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">depression_gds5_score (0~5)</span>
+                        <span class="data-tag">depression_q1~q5 (0/1 각)</span>
+                        <span class="data-tag">depression_level (normal/borderline/suspect)</span>
+                        <span class="data-tag">prev_depression_level</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M2: Oral Health ===== -->
+            <div style="border:2px solid #4caf50; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#4caf50; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M2</span>
+                    <span style="font-size:1.05rem; font-weight:700;">구강 건강 / 삼킴 기능 (오랄 프레일티)</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">분기 1회 | +1분 | 참고: Tanaka et al., 2018 <a class="ref" href="#ref-list2">R35</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q1 저작)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">お煎餅やお肉など、硬いものを噛むのが大変だと感じますか？</span>
+                                <span class="kr">전병이나 고기 같은 딱딱한 것을 씹기 힘들다고 느끼세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q2 연하)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">お水やお茶を飲む時に、むせることはありますか？</span>
+                                <span class="kr">물이나 차를 마실 때 사레가 들리는 일이 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q3 구강 건조)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">お口の中が乾くと感じることが多いですか？</span>
+                                <span class="kr">입안이 마르다고 느끼시는 일이 많으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                3문항 중 2개 이상 양성 &rarr; 오랄 프레일티 의심<br>
+                                <strong>연하 장애(Q2) 양성 &rarr; 흡인성 폐렴 위험 경고 + 의료기관 알림</strong><br>
+                                S5 프레일티 + M3 영양 상태와 연계: 구강 문제 &rarr; 영양 불량 &rarr; 근감소증 경로 추적
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">oral_chewing_difficulty (0/1)</span>
+                        <span class="data-tag">oral_dysphagia (0/1)</span>
+                        <span class="data-tag">oral_dry_mouth (0/1)</span>
+                        <span class="data-tag">oral_frailty_level (normal/suspect)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M3: Nutrition ===== -->
+            <div style="border:2px solid #00bcd4; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#00bcd4; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M3</span>
+                    <span style="font-size:1.05rem; font-weight:700;">영양 상태 평가 (MNA-SF 변형)</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">분기 1회 | +2분 | 참고: Rubenstein et al., 2001 <a class="ref" href="#ref-list2">R36</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q1 식사량 변화)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">この3ヶ月で、食事の量は減りましたか？以前と比べていかがですか？</span>
+                                <span class="kr">최근 3개월간 식사량이 줄었나요? 이전과 비교해서 어떠세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q2 단백질)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">毎日、お肉・お魚・卵・豆腐のどれかを食べていますか？</span>
+                                <span class="kr">매일 고기, 생선, 달걀, 두부 중 하나라도 드시고 계세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q3 수분)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">1日にコップ何杯くらいの水やお茶を飲んでいますか？</span>
+                                <span class="kr">하루에 컵으로 몇 잔 정도의 물이나 차를 드세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q4 식사 빈도)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">1日3食きちんと食べられていますか？抜いてしまう食事はありますか？</span>
+                                <span class="kr">하루 3끼를 잘 드시고 계세요? 거르는 끼니가 있으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                MNA-SF 변형 점수: 0~4 중 2점 이하 = 영양 불량 위험<br>
+                                <strong>InBody BMI/WT 트렌드와 교차 검증</strong>: 체중 감소 + 식사량 감소 = 강력한 영양 불량 신호<br>
+                                M2 구강 문제 양성 + M3 영양 불량 위험 &rarr; "씹기 힘들어서 못 먹는" 인과 경로 특정 가능
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">nutrition_appetite_change (0/1/2)</span>
+                        <span class="data-tag">nutrition_protein_daily (0/1)</span>
+                        <span class="data-tag">nutrition_hydration_cups (int)</span>
+                        <span class="data-tag">nutrition_meals_per_day (int)</span>
+                        <span class="data-tag">nutrition_risk_level (normal/at_risk/malnourished)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M4: Loneliness ===== -->
+            <div style="border:2px solid #e91e63; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#e91e63; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M4</span>
+                    <span style="font-size:1.05rem; font-weight:700;">사회적 고립 / 외로움 체크</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">분기 1회 | +1분 | 참고: Holt-Lunstad et al., 2015 <a class="ref" href="#ref-list2">R37</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q1 외로움)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">誰かとおしゃべりしたいのに、話す相手がいないなと感じることはありますか？</span>
+                                <span class="kr">누군가와 이야기하고 싶은데, 이야기할 사람이 없다고 느끼신 적 있으세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (Q2 고립 빈도)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">一人ぼっちだなと感じる日は、週にどのくらいありますか？</span>
+                                <span class="kr">혼자라고 느끼시는 날이 일주일에 며칠 정도 되세요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                Q1 양성 + Q2 주 3일 이상 &rarr; 사회적 고립 고위험<br>
+                                S1 사회활동 점수(SocialActivityLevel)와 교차: 활동은 하지만 외로움 = "질적 고립"<br>
+                                M1 우울 스크리닝과 연계: 외로움 &rarr; 우울 경로 추적<br>
+                                <strong>고위험 판정 시 &rarr; 지역 커뮤니티 프로그램 안내 + AI 통화 빈도 상향</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">loneliness_feeling (0/1)</span>
+                        <span class="data-tag">loneliness_days_per_week (0~7)</span>
+                        <span class="data-tag">isolation_risk (low/moderate/high)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M5: ADL/IADL ===== -->
+            <div style="border:2px solid #607d8b; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#607d8b; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M5</span>
+                    <span style="font-size:1.05rem; font-weight:700;">ADL/IADL 일상생활 수행능력</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">6개월 1회 | +2분 | 참고: Lawton &amp; Brody, 1969 <a class="ref" href="#ref-list2">R38</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (IADL 핵심 5문항)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">日々の生活のことをお聞きしますね。①一人で買い物に行けますか？②自分で料理を作れますか？③お金の管理は自分でしていますか？④バスや電車に一人で乗れますか？⑤お薬の管理は自分でできていますか？</span>
+                                <span class="kr">일상생활에 대해 여쭤볼게요. (1)혼자서 장을 보러 갈 수 있으세요? (2)직접 요리를 하시나요? (3)돈 관리는 직접 하시나요? (4)버스나 전철을 혼자 타실 수 있나요? (5)약 관리를 직접 하실 수 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                IADL 5항목 중 독립 수행 불가 항목 수 &rarr; 0=자립 | 1~2=부분 의존 | 3+=요지원 의심<br>
+                                <strong>IADL 저하는 인지기능 저하의 초기 징후</strong> &rarr; S4 인지 스크리닝 결과와 교차<br>
+                                약 관리(Q5) 불가 &rarr; M6 다약제 리스크 상향 + S1 복약 확인 빈도 증가<br>
+                                요개호 인정 판정의 핵심 데이터 &rarr; 의료기관 대시보드 직접 노출
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">iadl_shopping (0/1/2)</span>
+                        <span class="data-tag">iadl_cooking (0/1/2)</span>
+                        <span class="data-tag">iadl_finance (0/1/2)</span>
+                        <span class="data-tag">iadl_transport (0/1/2)</span>
+                        <span class="data-tag">iadl_medication (0/1/2)</span>
+                        <span class="data-tag">iadl_total_score (0~10)</span>
+                        <span class="data-tag">iadl_dependency_level (independent/partial/dependent)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M6: Polypharmacy ===== -->
+            <div style="border:2px solid #607d8b; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#607d8b; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M6</span>
+                    <span style="font-size:1.05rem; font-weight:700;">다약제 복용 (Polypharmacy) 체크</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">6개월 1회 | +1분 | 참고: 일본노년의학회, 2015 <a class="ref" href="#ref-list2">R39</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (약물 확인)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">お薬のことをお聞きしますね。今、何種類くらいのお薬を飲んでいますか？最近、新しく増えたり変わったお薬はありますか？お薬を飲んだ後、めまいや吐き気など、気になることはありますか？</span>
+                                <span class="kr">약에 대해 여쭤볼게요. 지금 몇 종류 정도의 약을 드시고 계세요? 최근에 새로 추가되거나 변경된 약이 있나요? 약을 드신 후 어지러움이나 메스꺼움 같은 불편함이 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                5종 이상 &rarr; 다약제 복용 위험 (일본 75세+ 40%가 해당)<br>
+                                부작용 보고 &rarr; Level 1 알림 (약사 연동)<br>
+                                <strong>어지러움 보고 + S1 낙상 보고 &rarr; 약물 기인 낙상 의심 경로 특정</strong><br>
+                                의료기관 대시보드에서 PHARMACIST 역할에 자동 공유
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">polypharmacy_med_count (int)</span>
+                        <span class="data-tag">polypharmacy_recent_change (0/1)</span>
+                        <span class="data-tag">polypharmacy_side_effects (0/1)</span>
+                        <span class="data-tag">polypharmacy_side_effect_detail (text)</span>
+                        <span class="data-tag">polypharmacy_risk (low/moderate/high)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== M7: Sleep ===== -->
+            <div style="border:2px solid #607d8b; border-radius:12px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                    <span style="background:#607d8b; color:white; padding:4px 12px; border-radius:8px; font-weight:700; font-size:0.82rem;">M7</span>
+                    <span style="font-size:1.05rem; font-weight:700;">수면 장애 스크리닝</span>
+                    <span style="font-size:0.72rem; color:var(--text-sec); margin-left:auto;">6개월 1회 | +1분 | 참고: Buysse et al., 1989 PSQI <a class="ref" href="#ref-list2">R40</a></span>
+                </div>
+
+                <div class="conv-flow">
+                    <div class="msg">
+                        <div class="msg-icon ai">AI</div>
+                        <div class="msg-content">
+                            <div class="msg-role ai">AI (수면 상세)</div>
+                            <div class="msg-bubble ai">
+                                <span class="jp">睡眠についてもう少し詳しくお聞きしますね。①寝つくまでに30分以上かかることはありますか？②いびきがひどいと言われたことはありますか？③昼間、眠くて活動しにくい日がありますか？</span>
+                                <span class="kr">수면에 대해 좀 더 자세히 여쭤볼게요. (1)잠들기까지 30분 이상 걸리나요? (2)코골이가 심하다는 이야기를 들으신 적 있나요? (3)낮에 졸려서 활동하기 힘든 날이 있나요?</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="msg">
+                        <div class="msg-icon system">SYS</div>
+                        <div class="msg-content">
+                            <div class="msg-role system">판정</div>
+                            <div class="msg-bubble system">
+                                Q1 양성 = 입면 장애 의심 &rarr; 불면증 경로<br>
+                                Q2 양성 = 수면무호흡 의심 &rarr; 수면검사 권유<br>
+                                Q3 양성 = 주간 과다졸림 &rarr; 낙상/인지 위험 연계<br>
+                                <strong>S1 매주 수면 질 데이터(SleepQuality)와 종단 교차</strong>: 수면 질 하락 추세 + M7 양성 = 수면 전문의 권유
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-collect" style="margin-top:12px;">
+                    <h4>수집 데이터</h4>
+                    <div class="data-tags">
+                        <span class="data-tag">sleep_onset_delay (0/1)</span>
+                        <span class="data-tag">sleep_snoring_reported (0/1)</span>
+                        <span class="data-tag">sleep_daytime_drowsiness (0/1)</span>
+                        <span class="data-tag">sleep_disorder_risk (low/moderate/high)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cross-link summary -->
+            <div style="background:#263238; border-radius:12px; padding:24px; color:white; margin-top:8px;">
+                <h3 style="font-size:0.95rem; margin-bottom:14px; text-align:center; opacity:0.9;">확장 모듈 간 인과 경로 (핵심 차별점)</h3>
+                <div style="font-family:monospace; font-size:0.8rem; line-height:2.2; text-align:center;">
+                    <div><span style="color:#4caf50;">M2 구강 문제</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#00bcd4;">M3 영양 불량</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ef9a9a;">S5 프레일티</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ef9a9a;">S5 근감소증</span></div>
+                    <div><span style="color:#f48fb1;">M4 외로움</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ffcc80;">M1 우울</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#00bcd4;">M3 식욕 저하</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ef9a9a;">S5 체중 감소</span></div>
+                    <div><span style="color:#b0bec5;">M6 다약제 부작용(어지러움)</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#90caf9;">S1 낙상</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ef9a9a;">S6 긴급 대응</span></div>
+                    <div><span style="color:#b0bec5;">M7 수면 장애</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ce93d8;">S4 인지 저하</span> <span style="color:#78909c;">+</span> <span style="color:#90caf9;">S1 낙상 위험</span></div>
+                    <div><span style="color:#b0bec5;">M5 IADL 저하</span> <span style="color:#78909c;">&rarr;</span> <span style="color:#ce93d8;">S4 인지기능 초기 징후</span> <span style="color:#78909c;">+</span> <span style="color:#b0bec5;">M6 약 관리 불가</span></div>
+                    <div style="margin-top:10px; font-size:0.72rem; color:#78909c; font-family:sans-serif;">
+                        단일 항목이 아닌, 여러 모듈의 데이터가 연결되어 원인-결과 경로를 특정할 수 있는 것이 핵심 차별점입니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="design-note" style="margin-top:20px;">
+                <strong>설계 포인트:</strong> 모든 확장 모듈은 "검사"가 아닌 "대화"로 진행. 점수를 사용자에게 알리지 않음. 부정적 결과도 "좋은 것을 유지하면서, 이 부분만 조금 더 신경 쓰면 좋겠어요" 식으로 전달. 확장 모듈의 결과는 기존 S3 코칭의 내용을 자동 조정하는 데 활용됨 (예: M2 연하 문제 &rarr; S3에서 부드러운 단백질 식품 권유로 전환).
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== Summary ==================== -->
+    <div class="scenario">
+        <div class="scenario-header">
+            <div class="scenario-num" style="background:#37474f;">+</div>
+            <div class="scenario-meta">
+                <h2>시나리오 간 연계 맵</h2>
+                <div class="en">Cross-Scenario Integration</div>
+            </div>
+        </div>
+        <div class="scenario-body">
+            <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+                <thead style="background:#263238; color:white;">
+                    <tr>
+                        <th style="padding:12px 16px; text-align:left;">트리거 이벤트</th>
+                        <th style="padding:12px 16px; text-align:left;">메인 시나리오</th>
+                        <th style="padding:12px 16px; text-align:left;">연계 시나리오</th>
+                        <th style="padding:12px 16px; text-align:left;">데이터 흐름</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:10px 16px;">주간 스케줄</td>
+                        <td style="padding:10px 16px;"><strong>S1</strong> 건강 체크인</td>
+                        <td style="padding:10px 16px;">S4 (월 1회 내장), S5 (분기 1회 내장)</td>
+                        <td style="padding:10px 16px;">S1 통증 정보 &rarr; S3 코칭에 반영</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:10px 16px;">InBody 측정 완료</td>
+                        <td style="padding:10px 16px;"><strong>S2</strong> 결과 해설</td>
+                        <td style="padding:10px 16px;">S5 교차 검증 데이터 업데이트</td>
+                        <td style="padding:10px 16px;">SMM/WT 트렌드 &rarr; S5 프레일티 판정 보강</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:10px 16px;">DayLog 목표 주기</td>
+                        <td style="padding:10px 16px;"><strong>S3</strong> 코칭</td>
+                        <td style="padding:10px 16px;">S1 컨디션 데이터 참조</td>
+                        <td style="padding:10px 16px;">S1 무릎 통증 &rarr; S3 저강도 운동 추천</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:10px 16px;">S1 내장 (월 1회)</td>
+                        <td style="padding:10px 16px;"><strong>S4</strong> 인지 스크리닝</td>
+                        <td style="padding:10px 16px;">S6 (급락 시)</td>
+                        <td style="padding:10px 16px;">인지 점수 추이 &rarr; S6 에스컬레이션 판단</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:10px 16px;">S1 내장 (분기 1회)</td>
+                        <td style="padding:10px 16px;"><strong>S5</strong> 프레일티</td>
+                        <td style="padding:10px 16px;">S2 (InBody 교차), S3 (결과 기반 코칭)</td>
+                        <td style="padding:10px 16px;">프레일 판정 &rarr; S3 코칭 강도 조절</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px 16px;">이상 징후 감지</td>
+                        <td style="padding:10px 16px;"><strong>S6</strong> 긴급 대응</td>
+                        <td style="padding:10px 16px;">모든 시나리오에서 트리거 가능</td>
+                        <td style="padding:10px 16px;">전체 통화 이력 &rarr; 의료기관 리포트</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border); background:#fff8e1;">
+                        <td style="padding:10px 16px;">S1 내장 (분기)</td>
+                        <td style="padding:10px 16px;"><strong>M1</strong> 우울 + <strong>M4</strong> 외로움</td>
+                        <td style="padding:10px 16px;">M1&rarr;S4 음성 감정 교차, M4&rarr;S1 사회활동 교차</td>
+                        <td style="padding:10px 16px;">우울+외로움 &rarr; S3 코칭 내용 조정</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border); background:#fff8e1;">
+                        <td style="padding:10px 16px;">S1 내장 (분기)</td>
+                        <td style="padding:10px 16px;"><strong>M2</strong> 구강 + <strong>M3</strong> 영양</td>
+                        <td style="padding:10px 16px;">M2&rarr;M3 인과 경로, M3&rarr;S5 체중 교차</td>
+                        <td style="padding:10px 16px;">구강&rarr;영양&rarr;근감소증 경로 추적</td>
+                    </tr>
+                    <tr style="background:#fff8e1;">
+                        <td style="padding:10px 16px;">S1 내장 (6개월)</td>
+                        <td style="padding:10px 16px;"><strong>M5</strong> IADL + <strong>M6</strong> 다약제 + <strong>M7</strong> 수면</td>
+                        <td style="padding:10px 16px;">M5&rarr;S4 인지 초기 징후, M6&rarr;S1 낙상, M7&rarr;S4 인지</td>
+                        <td style="padding:10px 16px;">IADL 저하 = 요개호 판정 근거</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="design-note" style="margin-top:24px;">
+                <strong>핵심 설계 원칙 (전 시나리오 공통):</strong><br><br>
+                1. <strong>경어 + 존칭</strong>: 항상 "~さん" + 정중체(ます/です). 시니어에 대한 존중이 서비스의 기본<br>
+                2. <strong>긍정 우선</strong>: 나쁜 소식도 반드시 좋은 점을 먼저 언급한 후 전달<br>
+                3. <strong>진단 금지</strong>: AI는 절대 의학적 진단을 내리지 않음. "~かもしれません(~일 수도 있어요)" 수준까지만<br>
+                4. <strong>속도 조절</strong>: 문장 사이 1.5초 이상 pause. 시니어의 청취 속도에 맞춤<br>
+                5. <strong>반복 확인</strong>: 중요한 정보는 반드시 되묻기 ("~ということですね？")<br>
+                6. <strong>이름 호명</strong>: 통화 중 최소 3회 이상 이름을 불러 친근감 형성<br>
+                7. <strong>종단 데이터 중심</strong>: 단일 측정값이 아닌, 시간에 따른 변화를 기반으로 판단
+            </div>
+        </div>
+    </div>
+
+    <!-- References -->
+    <div class="ref-section" id="ref-list2">
+        <h2>참고문헌 (References)</h2>
+
+        <div class="ref-category">일본 정부 통계 및 정책 자료</div>
+        <div class="ref-item"><span class="ref-id">[R1]</span> 厚生労働省. <em>国民生活基礎調査</em>, 2022. 65세 이상 유증상자율 ~50%, 통원율, 일상생활 제약 통계. e-Stat 원자료.</div>
+        <div class="ref-item"><span class="ref-id">[R3]</span> 厚生労働省. <em>国民健康・栄養調査</em>, 2019. 연령대별 혈압/혈당/체성분 통계. 시니어 고혈압 60%+, 당뇨 ~20%.</div>
+        <div class="ref-item"><span class="ref-id">[R4]</span> Kondo K et al. <em>JAGES (Japan Gerontological Evaluation Study).</em> 65세+ 약 20만 명 패널. 사회참여, 프레일티, 인지기능, 영양. jages.net</div>
+        <div class="ref-item"><span class="ref-id">[R7]</span> 일본비만학회 肥満症診断基準検討委員会. <em>新しい肥満の判定と肥満症の診断基準.</em> 肥満研究, 2000;6:18-28. 내장지방 면적 100cm&sup2; 기준.</div>
+        <div class="ref-item"><span class="ref-id">[R8]</span> 内閣府. <em>高齢者の健康に関する調査</em>, 2022. 운동 인지 72% vs 실행 38%, 시니어 건강 니즈 조사.</div>
+        <div class="ref-item"><span class="ref-id">[R19]</span> 内閣府. <em>高齢社会白書</em>, 2023. 独居高齢者 약 670만 명. "쓰러졌을 때 아무도 모르는 것"이 최대 불안.</div>
+
+        <div class="ref-category">프레일티 및 노년의학</div>
+        <div class="ref-item"><span class="ref-id">[R16]</span> Satake S, Arai H. <em>The revised Japanese version of the Cardiovascular Health Study criteria (revised J-CHS criteria).</em> Geriatr Gerontol Int, 2020;20(10):992-993.</div>
+        <div class="ref-item"><span class="ref-id">[R17]</span> Yamada M, Arai H et al. <em>Predictive value of frailty scores for healthy life expectancy in community-dwelling older Japanese adults.</em> J Am Med Dir Assoc, 2018. 프레프레일 단계 개입 시 47% 건강 회복.</div>
+        <div class="ref-item"><span class="ref-id">[R18]</span> Fried LP et al. <em>Frailty in older adults: evidence for a phenotype.</em> J Gerontol A Biol Sci Med Sci, 2001;56(3):M146-M157. 프레일티 표현형 5개 항목 정의.</div>
+
+        <div class="ref-category">근감소증 및 체성분</div>
+        <div class="ref-item"><span class="ref-id">[R10]</span> Bauer J et al. <em>Evidence-based recommendations for optimal dietary protein intake in older people: a position paper from the PROT-AGE Study Group.</em> J Am Med Dir Assoc, 2013;14(8):542-559. 노인 단백질 1.0~1.2 g/kg/day.</div>
+        <div class="ref-item"><span class="ref-id">[R21]</span> Srikanthan P, Karlamangla AS. <em>Muscle mass index as a predictor of longevity in older adults.</em> Am J Med, 2014;127(6):547-553.</div>
+        <div class="ref-item"><span class="ref-id">[R22]</span> Chen LK et al. <em>Asian Working Group for Sarcopenia: 2019 Consensus Update.</em> J Am Med Dir Assoc, 2020;21(3):300-307. AWGS 2019 진단 기준.</div>
+
+        <div class="ref-category">인지기능 및 치매</div>
+        <div class="ref-item"><span class="ref-id">[R11]</span> Folstein MF et al. <em>"Mini-mental state": a practical method for grading the cognitive state of patients.</em> J Psychiatr Res, 1975;12(3):189-198. MMSE 원전.</div>
+        <div class="ref-item"><span class="ref-id">[R12]</span> 加藤伸司 et al. <em>改訂長谷川式簡易知能評価スケール(HDS-R)の作成.</em> 老年精神医学雑誌, 1991;2:1339-1347. 일본 표준 인지기능 검사.</div>
+        <div class="ref-item"><span class="ref-id">[R13]</span> Shimada H et al. <em>Reversible predictors of reversion from mild cognitive impairment to normal cognition: a 4-year longitudinal study.</em> Alzheimers Res Ther, 2019;11:24. MCI에서 16~40% 정상 회복.</div>
+        <div class="ref-item"><span class="ref-id">[R14]</span> König A et al. <em>Automatic speech analysis for the assessment of patients with predementia and Alzheimer's disease.</em> Alzheimers Dement (Amst), 2015;1(1):112-124. 음성 분석 기반 인지 평가.</div>
+        <div class="ref-item"><span class="ref-id">[R33]</span> Lezak MD et al. <em>Neuropsychological Assessment, 5th ed.</em> Oxford University Press, 2012. 언어 유창성 정상 기준 13개/분.</div>
+
+        <div class="ref-category">낙상 및 긴급 대응</div>
+        <div class="ref-item"><span class="ref-id">[R2]</span> Tinetti ME. <em>Preventing falls in elderly persons.</em> N Engl J Med, 2003;348(1):42-49. 낙상 스크리닝 임상 가이드라인.</div>
+        <div class="ref-item"><span class="ref-id">[R20]</span> Wild D et al. <em>Undetected and under-treated falls in the elderly.</em> BMJ, 2012;345:e6808. 낙상 조기 발견과 사망률.</div>
+        <div class="ref-item"><span class="ref-id">[R32]</span> Hacke W et al. <em>Thrombolysis with alteplase 3 to 4.5 hours after acute ischemic stroke (ECASS III).</em> N Engl J Med, 2008;359(13):1317-1329. 뇌졸중 t-PA 4.5시간 기준.</div>
+
+        <div class="ref-category">행동과학 및 건강 리터러시</div>
+        <div class="ref-item"><span class="ref-id">[R5]</span> Berkman ND et al. <em>Low health literacy and health outcomes: an updated systematic review.</em> Ann Intern Med, 2011;155(2):97-107. Health Literacy와 만성질환 관리.</div>
+        <div class="ref-item"><span class="ref-id">[R9]</span> Michie S et al. <em>The behaviour change wheel: a new method for characterising and designing behaviour change interventions.</em> Implement Sci, 2011;6:42.</div>
+
+        <div class="ref-category">S1 확장 모듈 관련 (M1~M7)</div>
+        <div class="ref-item"><span class="ref-id">[R34]</span> Hoyl MT et al. <em>Development and testing of a five-item version of the Geriatric Depression Scale.</em> J Am Geriatr Soc, 1999;47(7):873-878. GDS-5 원전. 5문항으로 우울 스크리닝.</div>
+        <div class="ref-item"><span class="ref-id">[R35]</span> Tanaka T et al. <em>Oral frailty as a risk factor for physical frailty and mortality in community-dwelling elderly.</em> J Gerontol A, 2018;73(12):1661-1667. 오랄 프레일티와 신체 프레일티/사망 연관.</div>
+        <div class="ref-item"><span class="ref-id">[R36]</span> Rubenstein LZ et al. <em>Screening for undernutrition in geriatric practice: developing the Short-Form Mini Nutritional Assessment (MNA-SF).</em> J Gerontol A, 2001;56(6):M366-M372. MNA-SF 원전.</div>
+        <div class="ref-item"><span class="ref-id">[R37]</span> Holt-Lunstad J et al. <em>Loneliness and social isolation as risk factors for mortality: a meta-analytic review.</em> Perspect Psychol Sci, 2015;10(2):227-237. 사회적 고립 = 담배 15개비/일과 동등한 사망 위험.</div>
+        <div class="ref-item"><span class="ref-id">[R38]</span> Lawton MP, Brody EM. <em>Assessment of older people: self-maintaining and instrumental activities of daily living.</em> Gerontologist, 1969;9(3):179-186. IADL 평가 원전.</div>
+        <div class="ref-item"><span class="ref-id">[R39]</span> 일본노년의학회. <em>高齢者の安全な薬物療法ガイドライン 2015.</em> 다약제 복용(Polypharmacy) 위험 및 부적절 처방 기준.</div>
+        <div class="ref-item"><span class="ref-id">[R40]</span> Buysse DJ et al. <em>The Pittsburgh Sleep Quality Index: a new instrument for psychiatric practice and research.</em> Psychiatry Res, 1989;28(2):193-213. PSQI 원전. 수면 질 평가 표준 도구.</div>
+    </div>
+
+    <div class="footer">
+        <p>FitPlus DataScience Team | AI 전화 대화 시나리오/스크립트 설계 v1.0 | 2026.04.27</p>
+    </div>
+
+</div>
+
+</body>
+</html>

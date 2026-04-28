@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 전화통화 기반 시니어 헬스케어 서비스 기획안</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-light: #e8f0fe;
+            --accent-a: #0d47a1;
+            --accent-b: #2e7d32;
+            --accent-c: #e65100;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+            --tag-a: #1a73e8;
+            --tag-b: #2e7d32;
+            --tag-c: #e65100;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #0d47a1 0%, #1a73e8 50%, #4fc3f7 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .hero .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .hero .date {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 48px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .section-tag {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+        }
+        .section-tag.a { background: var(--tag-a); }
+        .section-tag.b { background: var(--tag-b); }
+        .section-tag.c { background: var(--tag-c); }
+        .section-tag.d { background: #6a1b9a; }
+        .section-tag.e { background: #00838f; }
+        .section-tag.f { background: #4e342e; }
+        .section-tag.data { background: #455a64; }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card-id {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            background: var(--tag-a);
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .card-id.b { background: var(--tag-b); }
+        .card-id.c { background: var(--tag-c); }
+
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+        .card .en {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .card ul li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        .card ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 9px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+        .card ul li strong {
+            color: var(--text);
+        }
+        .card .quote {
+            background: var(--primary-light);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            color: var(--accent-a);
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Data Asset Table */
+        .data-table-wrap {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .data-table thead {
+            background: #263238;
+            color: white;
+        }
+        .data-table th, .data-table td {
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+        .data-table th {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        .data-table tbody tr:hover {
+            background: #f1f3f4;
+        }
+        .data-table .cat {
+            font-weight: 700;
+            color: var(--accent-a);
+            white-space: nowrap;
+        }
+
+        /* Architecture */
+        .arch-diagram {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            overflow-x: auto;
+        }
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+        }
+        .arch-layer {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 12px;
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .arch-layer.input { background: #e3f2fd; border: 2px solid #1a73e8; }
+        .arch-layer.engine { background: #e8f5e9; border: 2px solid #2e7d32; }
+        .arch-layer.output { background: #fff3e0; border: 2px solid #e65100; }
+        .arch-layer.escalation { background: #fce4ec; border: 2px solid #c62828; }
+
+        .arch-layer h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .arch-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        .arch-item {
+            background: white;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .arch-arrow {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            padding: 8px 0;
+        }
+
+        /* Priority Table */
+        .priority-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .priority-table thead {
+            background: #00838f;
+            color: white;
+        }
+        .priority-table th, .priority-table td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+        .priority-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .priority-table tbody tr:hover {
+            background: #f1f3f4;
+        }
+        .rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #00838f;
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .rank.top { background: #c62828; }
+
+        .difficulty {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .difficulty.low { background: #e8f5e9; color: #2e7d32; }
+        .difficulty.mid { background: #fff3e0; color: #e65100; }
+        .difficulty.high { background: #fce4ec; color: #c62828; }
+
+        .impact {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .impact.highest { background: #c62828; color: white; }
+        .impact.high { background: #e65100; color: white; }
+        .impact.mid { background: #f9a825; color: #333; }
+
+        /* Needs Mapping */
+        .needs-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .needs-table thead {
+            background: #4e342e;
+            color: white;
+        }
+        .needs-table th, .needs-table td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+        .needs-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .needs-table tbody tr:hover {
+            background: #f1f3f4;
+        }
+        .needs-table .highlight {
+            background: #fff8e1;
+            font-weight: 700;
+        }
+        .feature-tag {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        .feature-tag.a { background: #e8f0fe; color: #1a73e8; }
+        .feature-tag.b { background: #e8f5e9; color: #2e7d32; }
+        .feature-tag.c { background: #fff3e0; color: #e65100; }
+
+        /* Key point callout */
+        .callout {
+            background: linear-gradient(135deg, #fff8e1, #fff3e0);
+            border-left: 4px solid #f9a825;
+            border-radius: 0 12px 12px 0;
+            padding: 20px 24px;
+            margin: 32px 0;
+        }
+        .callout strong {
+            color: #e65100;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* References */
+        .ref {
+            font-size: 0.72rem;
+            color: #1565c0;
+            background: #e3f2fd;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: help;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .ref:hover { background: #bbdefb; }
+        .ref-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 32px;
+        }
+        .ref-section h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .ref-category {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 18px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+        .ref-category:first-of-type { margin-top: 0; }
+        .ref-item {
+            font-size: 0.84rem;
+            line-height: 1.7;
+            padding: 4px 0 4px 12px;
+            border-left: 3px solid #e3f2fd;
+            margin-bottom: 6px;
+        }
+        .ref-item .ref-id {
+            font-weight: 700;
+            color: #1565c0;
+            margin-right: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { padding: 40px 20px; }
+            .hero h1 { font-size: 1.6rem; }
+            .container { padding: 24px 16px; }
+            .card-grid { grid-template-columns: 1fr; }
+            .arch-items { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+    <h1>AI 전화통화 기반 시니어 헬스케어 서비스 기획안</h1>
+    <div class="subtitle">
+        일본 50~70대 시니어를 타겟으로, InBody 체성분 데이터와 AI 전화통화 기술을 결합한 헬스케어 서비스
+    </div>
+    <div class="date">2026.04.27 | FitPlus DataScience Team</div>
+</div>
+
+<div class="container">
+
+    <!-- Context -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag data">CONTEXT</span>
+            <h2 class="section-title">배경 및 목표</h2>
+        </div>
+        <div class="card" style="border-left: 4px solid var(--primary);">
+            <p>
+                일본 50~70대 시니어를 타겟으로, <strong>InBody 체성분 데이터 + AI 전화통화 기술</strong>을 결합한 헬스케어 서비스를 기획한다.
+                정부 통계(国民健康・栄養調査, 中高年者縦断調査 등), JAGES 코호트, 민간 리서치를 근거로 삼고,
+                FitPlus가 이미 보유한 데이터 파이프라인을 최대한 활용한다.
+            </p>
+        </div>
+    </div>
+
+    <!-- Data Assets -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag data">DATA</span>
+            <h2 class="section-title">현재 보유 데이터 자산 요약</h2>
+        </div>
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th>카테고리</th><th>항목</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="cat">체성분 (InBody)</td><td>WT, PBF, BMI, SMM, BFM, SLM, WHR, VFA/VFL, WED, BMR, FFMI, FFM, BFMI, InBodyScore <strong>(17개 지표)</strong></td></tr>
+                    <tr><td class="cat">건강점수</td><td>FitScore (BMI+PBF 기반, 200~1000점), Cluster Index (BMI x PBF 9x9 그리드)</td></tr>
+                    <tr><td class="cat">시계열 분석</td><td>주/월/분기/연간 트렌드 리포트, 스무딩 데이터, 변곡점 감지</td></tr>
+                    <tr><td class="cat">일상 로그 (DayLog)</td><td>걸음수, 운동시간, 수분섭취, 수면, 식사</td></tr>
+                    <tr><td class="cat">프로필</td><td>연령, 성별, 신장, 국가코드(JP), 측정 이력, 기기 정보</td></tr>
+                    <tr><td class="cat">AI 리포트 엔진</td><td>LLM 기반 트렌드 코멘트, Q&A 프롬프트, 푸시 메시지 생성</td></tr>
+                    <tr><td class="cat">JP 특화</td><td>NHNS 2019 기반 BMI_STD, PBF 회귀 계수, 역학 문헌 기반 파라미터</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section A -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag a">A</span>
+            <h2 class="section-title">AI 전화통화로 할 수 있는 것</h2>
+        </div>
+        <div class="card-grid">
+            <!-- A-1 -->
+            <div class="card">
+                <span class="card-id">A-1</span>
+                <h3>정기 건강 체크인</h3>
+                <div class="en">Scheduled Health Check-in</div>
+                <ul>
+                    <li><strong>주 1~2회 정기 전화</strong>: "이번 주 몸 상태는 어떠세요?" 식 대화</li>
+                    <li><strong>주관적 건강 상태 수집</strong>: 통증 부위, 피로도, 식욕, 수면 질, 기분 (5점 척도 음성 입력) <a class="ref" href="#ref-list" title="国民生活基礎調査 2022">R1</a></li>
+                    <li><strong>낙상 경험 확인</strong>: "지난 한 주간 넘어지거나 비틀거린 적 있으세요?" <a class="ref" href="#ref-list" title="Tinetti ME, 2003, NEJM">R2</a></li>
+                    <li><strong>복약 확인</strong>: "혈압약/당뇨약 잘 드시고 계세요?" <a class="ref" href="#ref-list" title="国民健康・栄養調査 2019">R3</a></li>
+                    <li><strong>생활 활동 확인</strong>: 외출 빈도, 사회 활동 참여, 가사 활동 수행 여부 <a class="ref" href="#ref-list" title="JAGES 社会参加研究">R4</a></li>
+                </ul>
+            </div>
+            <!-- A-2 -->
+            <div class="card">
+                <span class="card-id">A-2</span>
+                <h3>InBody 측정 결과 음성 해설</h3>
+                <div class="en">Voice-Delivered Report</div>
+                <ul>
+                    <li><strong>측정 직후 자동 전화</strong>: InBody 측정 &rarr; 데이터 동기화 &rarr; AI가 전화로 결과 설명</li>
+                    <li><strong>FitScore 변화 알림</strong>: "지난달 대비 핏스코어가 15점 올랐습니다"</li>
+                    <li><strong>트렌드 코멘트 음성 전달</strong>: 기존 TrendReport CoreSentence를 음성으로 변환 <a class="ref" href="#ref-list" title="Berkman et al., 2011, Health Literacy">R5</a></li>
+                    <li><strong>클러스터 변화 설명</strong>: "같은 연령대에서 상위 35%에서 15%로 올라가셨습니다" <a class="ref" href="#ref-list" title="Kuczmarski et al., 2002, CDC Growth Chart">R6</a></li>
+                    <li><strong>위험 지표 경고</strong>: VFA 상승, SMM 급감, WED 이상 등을 쉬운 말로 설명 <a class="ref" href="#ref-list" title="Examination Committee, 2005, 일본 비만학회">R7</a></li>
+                </ul>
+            </div>
+            <!-- A-3 -->
+            <div class="card">
+                <span class="card-id">A-3</span>
+                <h3>동기부여 및 행동 코칭</h3>
+                <div class="en">Motivational Coaching</div>
+                <ul>
+                    <li><strong>목표 설정 대화</strong>: "이번 달 목표를 정해볼까요? 하루 6,000보 걷기는 어떠세요?" <a class="ref" href="#ref-list" title="内閣府 高齢者の健康に関する調査, 2022">R8</a></li>
+                    <li><strong>달성 축하 전화</strong>: DayLog 기반 목표 달성 시 축하 + 다음 목표 제안 <a class="ref" href="#ref-list" title="Michie et al., 2011, Behaviour Change Wheel">R9</a></li>
+                    <li><strong>운동 리마인더</strong>: "오늘 날씨가 좋은데, 산책 나가실 계획 있으세요?"</li>
+                    <li><strong>식사 가이드</strong>: "단백질 섭취가 부족해 보여요. 두부나 생선 한 끼 추가해보세요" <a class="ref" href="#ref-list" title="Bauer et al., 2013, PROT-AGE">R10</a></li>
+                </ul>
+            </div>
+            <!-- A-4 -->
+            <div class="card">
+                <span class="card-id">A-4</span>
+                <h3>인지기능 간이 스크리닝</h3>
+                <div class="en">Cognitive Screening</div>
+                <ul>
+                    <li><strong>시간 지남력</strong>: "오늘이 무슨 요일인지 아세요?" <a class="ref" href="#ref-list" title="Folstein et al., 1975, MMSE">R11</a></li>
+                    <li><strong>단기 기억</strong>: "아까 제가 말씀드린 세 단어를 기억하세요?" <a class="ref" href="#ref-list" title="加藤伸司 et al., 1991, HDS-R">R12</a></li>
+                    <li><strong>언어 유창성</strong>: "1분 동안 동물 이름을 최대한 많이 말씀해주세요" <a class="ref" href="#ref-list" title="Shimada et al., 2019, NILS-LSA">R13</a></li>
+                    <li><strong>대화 패턴 분석</strong>: 응답 시간, 단어 다양성, 문장 완성도의 시계열 변화 추적 <a class="ref" href="#ref-list" title="König et al., 2015, Alzheimer's &amp; Dementia">R14</a></li>
+                    <li><strong>우울 경향 감지</strong>: 음성 톤, 대화 참여도, 부정적 표현 빈도 모니터링 <a class="ref" href="#ref-list" title="Cummins et al., 2015, Speech Communication">R15</a></li>
+                </ul>
+            </div>
+            <!-- A-5 -->
+            <div class="card">
+                <span class="card-id">A-5</span>
+                <h3>프레일티(허약) 조기 감지</h3>
+                <div class="en">Frailty Early Detection</div>
+                <ul>
+                    <li><strong>J-CHS 기준 변형 5문항</strong>: <a class="ref" href="#ref-list" title="Satake et al., 2016, 日本老年医学会">R16</a></li>
+                    <li>"체중이 줄었다고 느끼세요?" (체중 감소)</li>
+                    <li>"계단을 오를 때 예전보다 힘드세요?" (근력 저하)</li>
+                    <li>"쉽게 피곤해지세요?" (피로)</li>
+                    <li>"최근 걷는 속도가 느려진 것 같으세요?" (보행속도)</li>
+                    <li>"밖에 나가는 횟수가 줄었나요?" (신체활동)</li>
+                </ul>
+                <div class="quote">InBody SMM 감소 추세 + 주관적 근력 저하 보고 &rarr; 근감소증 교차 검증 <a class="ref" href="#ref-list" title="Yamada et al., 2018, JAGES">R17</a> <a class="ref" href="#ref-list" title="Fried et al., 2001, J Gerontol">R18</a></div>
+            </div>
+            <!-- A-6 -->
+            <div class="card">
+                <span class="card-id">A-6</span>
+                <h3>긴급 상황 대응</h3>
+                <div class="en">Emergency Response</div>
+                <ul>
+                    <li><strong>이상 징후 에스컬레이션</strong>: 전화 응답 없음 (3회 연속), 혼란스러운 대화, 낙상 보고 <a class="ref" href="#ref-list" title="内閣府 高齢社会白書, 2023">R19</a></li>
+                    <li><strong>자동 알림</strong>: 보호자/의료기관에 즉시 통보 <a class="ref" href="#ref-list" title="Wild et al., 2012, BMJ">R20</a></li>
+                    <li><strong>긴급 연락망 연동</strong>: 등록된 가족/주치의에게 SMS/전화 전달</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section B -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag b">B</span>
+            <h2 class="section-title">InBody + FitPlus 데이터로 할 수 있는 것</h2>
+        </div>
+        <div class="card-grid">
+            <!-- B-1 -->
+            <div class="card">
+                <span class="card-id b">B-1</span>
+                <h3>근감소증(Sarcopenia) 모니터링</h3>
+                <ul>
+                    <li><strong>기존 SMM/FFMI 시계열 분석</strong> 활용 <a class="ref" href="#ref-list" title="Srikanthan &amp; Karlamangla, 2014, Am J Med">R21</a></li>
+                    <li><strong>AWGS 2019 기준 적용</strong>: SMI = ASM/height&sup2; &lt; 7.0 kg/m&sup2; (남), &lt; 5.7 kg/m&sup2; (여) <a class="ref" href="#ref-list" title="Chen et al., 2020, AWGS 2019">R22</a></li>
+                    <li><strong>분절 체성분(BCofPart)</strong>: 상하지 근육량 비대칭 감지 &rarr; 편측 약화 경고</li>
+                    <li><strong>ASM 산출</strong>: Measure_BCofPart 테이블의 사지 근육량 활용</li>
+                </ul>
+            </div>
+            <!-- B-2 -->
+            <div class="card">
+                <span class="card-id b">B-2</span>
+                <h3>내장지방 위험도 추적</h3>
+                <ul>
+                    <li><strong>VFA/VFL 시계열 트렌드</strong>: 내장지방 면적 100cm&sup2; 초과 시 경고 <a class="ref" href="#ref-list" title="Examination Committee, 2005, 일본 비만학회">R7</a></li>
+                    <li><strong>WHR 연동</strong>: 복부비만 지표와 내장지방의 교차 분석 <a class="ref" href="#ref-list" title="Matsuzawa, 2006, Atherosclerosis">R23</a></li>
+                    <li><strong>대사증후군 위험 스코어</strong>: BMI + VFA + WHR 종합 판정 <a class="ref" href="#ref-list" title="健康日本21(第三次), 2024-2035">R24</a></li>
+                </ul>
+            </div>
+            <!-- B-3 -->
+            <div class="card">
+                <span class="card-id b">B-3</span>
+                <h3>체수분/부종 모니터링</h3>
+                <ul>
+                    <li><strong>WED 추이 분석</strong>: 심부전/신장질환 조기 징후 <a class="ref" href="#ref-list" title="Gonzalez et al., 2018, Clin Nutr">R25</a></li>
+                    <li><strong>Phase Angle 백분위</strong>: 기존 BWA 엔드포인트 활용 &rarr; 영양 상태/세포 건강 지표 <a class="ref" href="#ref-list" title="Barbosa-Silva et al., 2005, Am J Clin Nutr">R26</a></li>
+                    <li><strong>부종 레벨 분류</strong>: 기존 wed-level API 직접 활용 가능</li>
+                </ul>
+            </div>
+            <!-- B-4 -->
+            <div class="card">
+                <span class="card-id b">B-4</span>
+                <h3>FitScore 시니어 특화 버전</h3>
+                <ul>
+                    <li><strong>60세 이상 확장 모델</strong>: 현재 20~60세 &rarr; 60~80세 구간 추가 <a class="ref" href="#ref-list" title="Flegal et al., 2013, JAMA">R27</a></li>
+                    <li><strong>근감소증 가중치 추가</strong>: SMM/FFMI 변화를 FitScore에 반영 <a class="ref" href="#ref-list" title="Srikanthan &amp; Karlamangla, 2014">R21</a></li>
+                    <li><strong>JP 역학 데이터 기반</strong>: EPOCH-JAPAN, Matsuo et al. 근거로 70대 BMI_STD 설정 <a class="ref" href="#ref-list" title="EPOCH-JAPAN, 2018">R28</a> <a class="ref" href="#ref-list" title="Matsuo et al., 2008">R29</a></li>
+                    <li><strong>프레일티 통합 점수</strong>: FitScore + 프레일티 체크 &rarr; 종합 건강 등급 <a class="ref" href="#ref-list" title="Rockwood et al., 2005, CMAJ">R30</a></li>
+                </ul>
+            </div>
+            <!-- B-5 -->
+            <div class="card">
+                <span class="card-id b">B-5</span>
+                <h3>인구 집단 비교 리포트</h3>
+                <ul>
+                    <li><strong>BigData_HistogramInfo 활용</strong>: 동일 연령대/성별 내 위치 시각화</li>
+                    <li><strong>Cluster Index 시니어 특화</strong>: 50~70대 전용 9x9 그리드 재보정</li>
+                    <li><strong>연간 Recap 확장</strong>: 시니어 전용 항목(근감소증 추이, 프레일티 경향) 추가</li>
+                </ul>
+            </div>
+            <!-- B-6 -->
+            <div class="card">
+                <span class="card-id b">B-6</span>
+                <h3>InBody Everyday(가정용) 연동</h3>
+                <ul>
+                    <li><strong>StackHistory 테이블 활용</strong>: 매일 가정에서 측정 &rarr; 고빈도 데이터</li>
+                    <li><strong>이상치 즉시 알림</strong>: 하루 단위 체중/체수분 급변 감지 &rarr; AI 전화로 확인</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section C -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag c">C</span>
+            <h2 class="section-title">현재 역량 밖이지만 있으면 유용한 것</h2>
+        </div>
+        <div class="card-grid">
+            <!-- C-1 -->
+            <div class="card">
+                <span class="card-id c">C-1</span>
+                <h3>웨어러블 바이탈 연동</h3>
+                <ul>
+                    <li><strong>연속 심박수/HRV</strong>: 자율신경 기능, 스트레스 수준</li>
+                    <li><strong>혈압 자동 기록</strong>: 고혈압 관리 (일본 시니어 60%+ 고혈압) <a class="ref" href="#ref-list" title="国民健康・栄養調査 2019">R3</a></li>
+                    <li><strong>SpO2 산소포화도</strong>: 수면무호흡, 호흡기 문제 조기 감지</li>
+                    <li><strong>체온 추이</strong>: 감염/염증 조기 경고</li>
+                </ul>
+                <div class="quote">DayLog IsHealthConnect 필드 이미 존재 &rarr; Apple HealthKit / Google Fit 확장 가능</div>
+            </div>
+            <!-- C-2 -->
+            <div class="card">
+                <span class="card-id c">C-2</span>
+                <h3>혈액검사/의료 데이터 연동</h3>
+                <ul>
+                    <li><strong>HbA1c, 공복혈당</strong>: 당뇨 관리 (유병률 ~20%) <a class="ref" href="#ref-list" title="国民健康・栄養調査 2019">R3</a></li>
+                    <li><strong>LDL/HDL 콜레스테롤</strong>: 심혈관 위험도</li>
+                    <li><strong>eGFR/크레아티닌</strong>: 신장 기능 (WED 데이터와 교차)</li>
+                    <li><strong>알부민/프리알부민</strong>: 영양 상태 (저영양 = 프레일티 핵심 원인)</li>
+                </ul>
+                <div class="quote">特定健診 데이터 API 또는 PHR 연동</div>
+            </div>
+            <!-- C-3 -->
+            <div class="card">
+                <span class="card-id c">C-3</span>
+                <h3>GPS/위치 기반 활동 모니터링</h3>
+                <ul>
+                    <li><strong>외출 빈도/반경 자동 추적</strong>: 사회적 고립 조기 감지</li>
+                    <li><strong>방문 패턴 분석</strong>: 병원/운동시설 방문 생활 활동 수준 평가</li>
+                    <li><strong>낙상 감지 자동 알림</strong>: 스마트폰 가속도센서 + 위치 정보</li>
+                </ul>
+            </div>
+            <!-- C-4 -->
+            <div class="card">
+                <span class="card-id c">C-4</span>
+                <h3>음성 바이오마커 분석</h3>
+                <ul>
+                    <li><strong>성대 떨림/음성 주파수 분석</strong>: 파킨슨병, 우울증 조기 징후 <a class="ref" href="#ref-list" title="Cummins et al., 2015, Speech Communication">R15</a></li>
+                    <li><strong>발화 속도/멈춤 패턴</strong>: 인지기능 저하 장기 추적 <a class="ref" href="#ref-list" title="König et al., 2015, Alzheimer's &amp; Dementia">R14</a></li>
+                    <li><strong>호흡 패턴 분석</strong>: 호흡기 건강 모니터링</li>
+                </ul>
+                <div class="quote">AI 전화 음성 데이터를 2차 분석하는 파이프라인</div>
+            </div>
+            <!-- C-5 -->
+            <div class="card">
+                <span class="card-id c">C-5</span>
+                <h3>식사 영양 자동 분석</h3>
+                <ul>
+                    <li><strong>사진 기반 식사 기록</strong>: AI 이미지 분석으로 칼로리/영양소 추정</li>
+                    <li><strong>단백질 섭취량 추적</strong>: 근감소증 예방 핵심 (1.0~1.2g/kg/day 권장) <a class="ref" href="#ref-list" title="Bauer et al., 2013, PROT-AGE">R10</a></li>
+                    <li><strong>수분 섭취 모니터링</strong>: 탈수 예방 (시니어 갈증 감각 저하)</li>
+                </ul>
+            </div>
+            <!-- C-6 -->
+            <div class="card">
+                <span class="card-id c">C-6</span>
+                <h3>의료기관/개호시설 연동 플랫폼</h3>
+                <ul>
+                    <li><strong>주치의 대시보드</strong>: 환자별 체성분 트렌드 + AI 전화 요약 열람</li>
+                    <li><strong>개호매니저 리포트</strong>: 요개호 인정 판정용 객관적 데이터 제공</li>
+                    <li><strong>약국 연동</strong>: 복약 이력 + AI 전화 복약 확인 결과 대조</li>
+                    <li><strong>LIFE 연동</strong>: 후생노동성 科学的介護情報システム 연계 <a class="ref" href="#ref-list" title="厚生労働省 LIFE, 2021">R31</a></li>
+                </ul>
+            </div>
+            <!-- C-7 -->
+            <div class="card">
+                <span class="card-id c">C-7</span>
+                <h3>사회적 고립 방지 기능</h3>
+                <ul>
+                    <li><strong>AI 말동무</strong>: 건강 체크 외 일상 대화, 추억 이야기, 뉴스 토론</li>
+                    <li><strong>지역 커뮤니티 연결</strong>: 근처 운동 교실, 건강 이벤트 정보 안내</li>
+                    <li><strong>가족 공유 리포트</strong>: 원거리 가족에게 주간 건강 요약 자동 전송</li>
+                </ul>
+            </div>
+            <!-- C-8 -->
+            <div class="card">
+                <span class="card-id c">C-8</span>
+                <h3>보험/건강경영 연동</h3>
+                <ul>
+                    <li><strong>特定健診 대응</strong>: 메타볼릭 신드롬 판정과 FitScore 연계</li>
+                    <li><strong>건강경영 기업 대응</strong>: 정년 후 고령 재고용자 건강관리 패키지</li>
+                    <li><strong>보험사 연동</strong>: 건강 개선 실적 기반 보험료 할인 데이터 제공</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architecture -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag d">D</span>
+            <h2 class="section-title">서비스 아키텍처 개요</h2>
+        </div>
+        <div class="arch-diagram">
+            <div class="arch-flow">
+                <div class="arch-layer input">
+                    <h4>시니어 사용자 (입력)</h4>
+                    <div class="arch-items">
+                        <div class="arch-item">InBody 측정 (가정/시설)</div>
+                        <div class="arch-item">AI 전화 (정기/이벤트)</div>
+                        <div class="arch-item">DayLog (앱/웨어러블)</div>
+                    </div>
+                </div>
+                <div class="arch-arrow">&#9660;</div>
+                <div class="arch-layer engine">
+                    <h4>FitPlus DataScience 엔진</h4>
+                    <div class="arch-items">
+                        <div class="arch-item">FitScore 산출 (시니어 확장)</div>
+                        <div class="arch-item">프레일티 위험 스코어</div>
+                        <div class="arch-item">근감소증 모니터링</div>
+                        <div class="arch-item">트렌드 분석 + 이상 감지</div>
+                        <div class="arch-item">AI 리포트 생성 (LLM)</div>
+                        <div class="arch-item">음성 바이오마커 분석</div>
+                    </div>
+                </div>
+                <div class="arch-arrow">&#9660;</div>
+                <div class="arch-layer output">
+                    <h4>출력 채널</h4>
+                    <div class="arch-items">
+                        <div class="arch-item">AI 전화 &rarr; 결과/코칭/알림</div>
+                        <div class="arch-item">앱 푸시 (PushMessage)</div>
+                        <div class="arch-item">가족 리포트 (SMS/이메일)</div>
+                        <div class="arch-item">의료기관 대시보드 (웹)</div>
+                    </div>
+                </div>
+                <div class="arch-arrow">&#9660;</div>
+                <div class="arch-layer escalation">
+                    <h4>에스컬레이션</h4>
+                    <div class="arch-items">
+                        <div class="arch-item">이상 징후 &rarr; 보호자 알림</div>
+                        <div class="arch-item">긴급 상황 &rarr; 의료기관 연락</div>
+                        <div class="arch-item">장기 악화 추세 &rarr; 주치의 리포트</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag e">E</span>
+            <h2 class="section-title">우선순위 제안</h2>
+        </div>
+        <div class="data-table-wrap">
+            <table class="priority-table">
+                <thead>
+                    <tr><th>순위</th><th>기능</th><th>난이도</th><th>영향도</th><th>근거</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="rank top">1</span></td>
+                        <td><strong>A-1</strong> 정기 건강 체크인</td>
+                        <td><span class="difficulty mid">중</span></td>
+                        <td><span class="impact highest">최고</span></td>
+                        <td>서비스 코어. 모든 기능의 기반</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank top">2</span></td>
+                        <td><strong>A-2</strong> InBody 결과 음성 해설</td>
+                        <td><span class="difficulty low">낮음</span></td>
+                        <td><span class="impact high">높음</span></td>
+                        <td>기존 TrendReport 엔진 재활용</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank top">3</span></td>
+                        <td><strong>B-1</strong> 근감소증 모니터링</td>
+                        <td><span class="difficulty mid">중</span></td>
+                        <td><span class="impact high">높음</span></td>
+                        <td>기존 SMM/BCofPart 데이터 활용</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">4</span></td>
+                        <td><strong>A-5</strong> 프레일티 조기 감지</td>
+                        <td><span class="difficulty mid">중</span></td>
+                        <td><span class="impact highest">최고</span></td>
+                        <td>일본 개호예방 정책과 직결</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">5</span></td>
+                        <td><strong>B-6</strong> InBody Everyday 연동</td>
+                        <td><span class="difficulty low">낮음</span></td>
+                        <td><span class="impact mid">중</span></td>
+                        <td>테이블 이미 존재</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">6</span></td>
+                        <td><strong>A-3</strong> 동기부여 코칭</td>
+                        <td><span class="difficulty mid">중</span></td>
+                        <td><span class="impact mid">중</span></td>
+                        <td>DayLog 기반</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">7</span></td>
+                        <td><strong>A-6</strong> 긴급 대응</td>
+                        <td><span class="difficulty high">높음</span></td>
+                        <td><span class="impact highest">최고</span></td>
+                        <td>법적/윤리적 검토 필요</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rank">8</span></td>
+                        <td><strong>C-6</strong> 의료기관 연동</td>
+                        <td><span class="difficulty high">높음</span></td>
+                        <td><span class="impact highest">최고</span></td>
+                        <td>사업 모델 핵심이나 개발 부담 큼</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Needs Mapping -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag f">F</span>
+            <h2 class="section-title">일본 시니어 시장 핵심 니즈 매핑</h2>
+        </div>
+        <div class="data-table-wrap">
+            <table class="needs-table">
+                <thead>
+                    <tr><th>니즈 (内閣府 高齢者の健康に関する調査, 2022 <a class="ref" href="#ref-list" title="内閣府 高齢者の健康に関する調査, 2022" style="color:#fff;">R8</a>)</th><th>대응 기능</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>건강 유지 / 체력 저하 불안</td>
+                        <td>
+                            <span class="feature-tag a">A-1</span>
+                            <span class="feature-tag a">A-2</span>
+                            <span class="feature-tag b">B-1</span>
+                            <span class="feature-tag b">B-4</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>운동 습관 형성 어려움</td>
+                        <td><span class="feature-tag a">A-3 코칭</span></td>
+                    </tr>
+                    <tr>
+                        <td>인지기능 저하 불안</td>
+                        <td><span class="feature-tag a">A-4 인지 스크리닝</span></td>
+                    </tr>
+                    <tr>
+                        <td>혼자 사는 것의 불안</td>
+                        <td>
+                            <span class="feature-tag a">A-6 긴급 대응</span>
+                            <span class="feature-tag c">C-7 고립 방지</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>의료비 부담</td>
+                        <td>
+                            <span class="feature-tag b">B-2 예방 관리</span>
+                            <span class="feature-tag c">C-8 보험 연동</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>가족에게 폐 끼치기 싫음</td>
+                        <td><span class="feature-tag c">C-7 가족 공유</span></td>
+                    </tr>
+                    <tr class="highlight">
+                        <td><strong>디지털 기기 사용 어려움</strong></td>
+                        <td><strong>AI 전화 = 스마트폰 앱 불필요 (핵심 차별점)</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="callout">
+        <strong>핵심 차별점:</strong> AI 전화는 스마트폰 앱이 필요 없습니다. 디지털 소외 계층인 시니어가 익숙한 전화 한 통으로 InBody 체성분 데이터 기반의 전문적인 건강 관리를 받을 수 있습니다. 이것이 기존 헬스케어 앱과의 가장 큰 차이점입니다.
+    </div>
+
+    <!-- References -->
+    <div class="ref-section" id="ref-list">
+        <h2>참고문헌 (References)</h2>
+
+        <div class="ref-category">일본 정부 통계 및 정책 자료</div>
+        <div class="ref-item"><span class="ref-id">[R1]</span> 厚生労働省. <em>国民生活基礎調査</em>, 2022. 65세 이상 유증상자율, 통원율, 일상생활 제약 연령계급별 세부 표. e-Stat 원자료 공개.</div>
+        <div class="ref-item"><span class="ref-id">[R3]</span> 厚生労働省. <em>国民健康・栄養調査</em>, 2019. 신체계측, 혈압, 식생활, 운동, 흡연, 음주 연령대별 크로스 분석. 일본 시니어 고혈압 유병률 60%+, 당뇨 유병률 ~20% 근거.</div>
+        <div class="ref-item"><span class="ref-id">[R8]</span> 内閣府. <em>高齢者の健康に関する調査</em>, 2022. 50대 후반~70대 의식조사. 운동 인지 72% vs 실행 38% 등 니즈 항목 직접 인용.</div>
+        <div class="ref-item"><span class="ref-id">[R19]</span> 内閣府. <em>高齢社会白書</em>, 2023. 独居高齢者 약 670만 명. 시니어 건강/생활 종합 통계.</div>
+        <div class="ref-item"><span class="ref-id">[R24]</span> 厚生労働省. <em>健康日本21(第三次)</em>, 2024-2035. 일본 정부 공식 건강 KPI 및 목표치.</div>
+        <div class="ref-item"><span class="ref-id">[R31]</span> 厚生労働省. <em>科学的介護情報システム(LIFE)</em>, 2021. 개호 서비스의 질 향상을 위한 데이터 수집 및 피드백 시스템.</div>
+
+        <div class="ref-category">프레일티 및 노년의학</div>
+        <div class="ref-item"><span class="ref-id">[R16]</span> Satake S, Arai H. <em>The revised Japanese version of the Cardiovascular Health Study criteria (revised J-CHS criteria).</em> Geriatr Gerontol Int, 2020;20(10):992-993. 일본 공식 프레일티 스크리닝 기준.</div>
+        <div class="ref-item"><span class="ref-id">[R17]</span> Yamada M, Arai H et al. <em>Predictive value of frailty scores for healthy life expectancy in community-dwelling older Japanese adults.</em> J Am Med Dir Assoc, 2018;16(11):1002.e7-11. JAGES 20만 명 패널. 프레프레일 단계 개입 시 47% 회복.</div>
+        <div class="ref-item"><span class="ref-id">[R18]</span> Fried LP et al. <em>Frailty in older adults: evidence for a phenotype.</em> J Gerontol A Biol Sci Med Sci, 2001;56(3):M146-M157. 프레일티 표현형(phenotype) 정의의 원전. 5개 항목 기준.</div>
+        <div class="ref-item"><span class="ref-id">[R30]</span> Rockwood K et al. <em>A global clinical measure of fitness and frailty in elderly people.</em> CMAJ, 2005;173(5):489-495. Clinical Frailty Scale (CFS) 원전.</div>
+
+        <div class="ref-category">근감소증 및 체성분</div>
+        <div class="ref-item"><span class="ref-id">[R21]</span> Srikanthan P, Karlamangla AS. <em>Muscle mass index as a predictor of longevity in older adults.</em> Am J Med, 2014;127(6):547-553. 근육량이 사망률 예측에 BMI보다 유의미.</div>
+        <div class="ref-item"><span class="ref-id">[R22]</span> Chen LK et al. <em>Asian Working Group for Sarcopenia: 2019 Consensus Update.</em> J Am Med Dir Assoc, 2020;21(3):300-307. AWGS 2019 아시아 근감소증 진단 기준 (SMI 컷오프).</div>
+        <div class="ref-item"><span class="ref-id">[R10]</span> Bauer J et al. <em>Evidence-based recommendations for optimal dietary protein intake in older people: a position paper from the PROT-AGE Study Group.</em> J Am Med Dir Assoc, 2013;14(8):542-559. 노인 단백질 권장량 1.0~1.2 g/kg/day.</div>
+
+        <div class="ref-category">BMI, 비만, 체지방</div>
+        <div class="ref-item"><span class="ref-id">[R7]</span> 일본비만학회 肥満症診断基準検討委員会. <em>新しい肥満の判定と肥満症の診断基準.</em> 肥満研究, 2000;6:18-28. 내장지방 면적 100cm&sup2; 기준 근거. 2005년 개정.</div>
+        <div class="ref-item"><span class="ref-id">[R23]</span> Matsuzawa Y. <em>The metabolic syndrome and adipocytokines.</em> FEBS Letters, 2006;580(12):2917-2921. 내장지방과 대사증후군 기전.</div>
+        <div class="ref-item"><span class="ref-id">[R27]</span> Flegal KM et al. <em>Association of all-cause mortality with overweight and obesity using standard body mass index categories.</em> JAMA, 2013;309(1):71-82. Obesity Paradox - 경도 과체중에서 최저 사망률.</div>
+        <div class="ref-item"><span class="ref-id">[R28]</span> Sasazuki S et al. <em>Body mass index and mortality from all causes and major causes in Japanese: results of a pooled analysis of 7 large-scale cohort studies.</em> J Epidemiol, 2011;21(6):417-430. EPOCH-JAPAN 13개 코호트 풀링 분석.</div>
+        <div class="ref-item"><span class="ref-id">[R29]</span> Matsuo T et al. <em>An optimal BMI range associated with minimum morbidity for Japanese middle-aged and elderly.</em> J Epidemiol, 2008;18(6):220-227. 일본인 최적 BMI 연구.</div>
+
+        <div class="ref-category">인지기능 및 치매</div>
+        <div class="ref-item"><span class="ref-id">[R11]</span> Folstein MF et al. <em>"Mini-mental state": a practical method for grading the cognitive state of patients for the clinician.</em> J Psychiatr Res, 1975;12(3):189-198. MMSE 원전.</div>
+        <div class="ref-item"><span class="ref-id">[R12]</span> 加藤伸司 et al. <em>改訂長谷川式簡易知能評価スケール(HDS-R)の作成.</em> 老年精神医学雑誌, 1991;2:1339-1347. 일본 표준 인지기능 검사 HDS-R.</div>
+        <div class="ref-item"><span class="ref-id">[R13]</span> Shimada H et al. <em>Reversible predictors of reversion from mild cognitive impairment to normal cognition: a 4-year longitudinal study.</em> Alzheimers Res Ther, 2019;11:24. NILS-LSA. MCI 단계에서 16~40% 정상 회복 근거.</div>
+        <div class="ref-item"><span class="ref-id">[R14]</span> König A et al. <em>Automatic speech analysis for the assessment of patients with predementia and Alzheimer's disease.</em> Alzheimers Dement (Amst), 2015;1(1):112-124. 음성 분석 기반 인지기능 평가 가능성.</div>
+
+        <div class="ref-category">낙상 및 긴급 대응</div>
+        <div class="ref-item"><span class="ref-id">[R2]</span> Tinetti ME. <em>Preventing falls in elderly persons.</em> N Engl J Med, 2003;348(1):42-49. 낙상 예방의 임상적 중요성. 반복 낙상 = 프레일티 핵심 지표.</div>
+        <div class="ref-item"><span class="ref-id">[R20]</span> Wild D et al. <em>Undetected and under-treated falls in the elderly.</em> BMJ, 2012;345:e6808. 낙상 후 조기 발견의 사망률 감소 효과.</div>
+
+        <div class="ref-category">행동과학 및 건강 리터러시</div>
+        <div class="ref-item"><span class="ref-id">[R5]</span> Berkman ND et al. <em>Low health literacy and health outcomes: an updated systematic review.</em> Ann Intern Med, 2011;155(2):97-107. Health Literacy 낮으면 만성질환 관리 실패 1.5~3배.</div>
+        <div class="ref-item"><span class="ref-id">[R9]</span> Michie S et al. <em>The behaviour change wheel: a new method for characterising and designing behaviour change interventions.</em> Implement Sci, 2011;6:42. 행동 변화 이론 프레임워크.</div>
+
+        <div class="ref-category">음성 바이오마커</div>
+        <div class="ref-item"><span class="ref-id">[R15]</span> Cummins N et al. <em>A review of depression and suicide risk assessment using speech analysis.</em> Speech Communication, 2015;71:10-49. 음성 특성 기반 우울증/정신건강 평가.</div>
+
+        <div class="ref-category">체수분 및 세포 건강</div>
+        <div class="ref-item"><span class="ref-id">[R25]</span> Gonzalez MC et al. <em>Bioelectrical impedance analysis for diagnosing malnutrition and agreement with subjective global assessment.</em> Clin Nutr, 2018;38(3):1366-1372. BIA 기반 부종/영양 상태 평가.</div>
+        <div class="ref-item"><span class="ref-id">[R26]</span> Barbosa-Silva MC et al. <em>Bioelectrical impedance analysis: population reference values for phase angle by age and sex.</em> Am J Clin Nutr, 2005;82(1):49-52. Phase Angle 백분위 참조 기준.</div>
+
+        <div class="ref-category">인구 비교 및 백분위</div>
+        <div class="ref-item"><span class="ref-id">[R6]</span> Kuczmarski RJ et al. <em>2000 CDC Growth Charts for the United States: methods and development.</em> Vital Health Stat 11, 2002;(246):1-190. 백분위 산출 방법론.</div>
+
+        <div class="ref-category">대규모 코호트 연구</div>
+        <div class="ref-item"><span class="ref-id">[R4]</span> Kondo K et al. <em>JAGES (Japan Gerontological Evaluation Study).</em> 65세+ 약 20만 명 패널. 사회참여, 프레일티, 인지기능, 영양. jages.net 데이터 카탈로그 공개.</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>FitPlus DataScience Team | AI 전화통화 기반 시니어 헬스케어 서비스 기획안 | 2026.04.27</p>
+    </div>
+
+</div>
+
+</body>
+</html>
